@@ -24,7 +24,14 @@ export function useGame(difficulty) {
     }
   }
 
-  return { ...props, flagTile, showTile };
+  function reset() {
+    if (game.current) {
+      game.current = new Game(difficulty);
+      setProps(extractProps(game.current));
+    }
+  }
+
+  return { ...props, flagTile, showTile, reset };
 }
 
 function extractProps(game) {
@@ -35,7 +42,7 @@ function extractProps(game) {
     formatMs,
     startDateTime,
     placedFlags,
-    difficultyLevel: difficulty,
+    difficulty,
   } = game;
   return {
     state,

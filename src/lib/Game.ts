@@ -31,7 +31,7 @@ const GameConstraintsOptions = {
 };
 
 export default class Game {
-  difficultyLevel: DifficultyLevel;
+  difficulty: DifficultyLevel;
   constraints: GameConstraints;
 
   totalTiles = 0;
@@ -50,9 +50,9 @@ export default class Game {
   _board: Tile[] = [];
   minesIndexes: number[] = [];
 
-  constructor(difficultyLevel: DifficultyLevel) {
-    this.difficultyLevel = difficultyLevel;
-    this.constraints = GameConstraintsOptions[difficultyLevel];
+  constructor(difficulty: DifficultyLevel) {
+    this.difficulty = difficulty;
+    this.constraints = GameConstraintsOptions[difficulty];
     this.totalTiles = this.constraints.cols * this.constraints.rows;
     this.nonMineTiles = this.totalTiles - this.constraints.mines;
     this.createEmptyBoard();

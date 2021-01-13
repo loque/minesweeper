@@ -3,6 +3,7 @@ import "./App.scss";
 import Presentation from "./Presentation";
 import Setup from "./Setup";
 import Game from "./Game";
+import Results from "./Results";
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
           </Route>
           <Route path="/game">
             <Game />
+          </Route>
+          <Route path="/results">
+            <Results />
           </Route>
           <Route path="/">
             <Presentation />

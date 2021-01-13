@@ -1,0 +1,32 @@
+.board {
+  display: flex;
+  flex-direction: column;
+}
+
+.board-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.board-tile {
+  width: 40px;
+  height: 40px;
+  border: 1px solid black;
+
+  &.hidden {
+    background-color: green;
+    cursor: pointer;
+  }
+
+  &.shown {
+    background-color: grey;
+
+    &.hasMine {
+      background-color: black;
+    }
+  }
+
+  &.flagged {
+    background-color: red;
+  }
+}
