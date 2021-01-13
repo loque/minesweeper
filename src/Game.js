@@ -4,6 +4,7 @@ import "./Game.scss";
 import { useGame } from "./lib/useGame";
 import { useConfig } from "./lib/config";
 import { msToMS } from "./lib/time";
+import { config } from "process";
 
 function ElapsedTime({ startTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
@@ -37,7 +38,7 @@ export default function Game() {
     }
   }, [game, prevLocationKey, location.key]);
 
-  const result = buildResult(game);
+  const result = buildResult(game, config);
   useEffect(() => {
     if (prevGameState.current !== game.state) {
       prevGameState.current = game.state;
@@ -70,6 +71,7 @@ export default function Game() {
         {game.state} - {game.result}
       </div>
       <div>Placed flags: {game.placedFlags}</div>
+      <div>Name: {config.name}</div>
       <ElapsedTime
         startTime={game.startDateTime}
         run={game.state === "STARTED"}
@@ -111,12 +113,13 @@ export default function Game() {
   );
 }
 
-function buildResult(game) {
+function buildResult(game, config) {
   return {
     startTime: game.startTime,
     endTime: game.endTime,
     difficulty: game.difficulty,
     gameTime: game.gameTime,
-    status: game.status,
+    result: game.result,
+    name: config.name,
   };
 }

@@ -14,18 +14,22 @@ export const useConfig = () => {
   return useContext(ConfigContext);
 };
 
+const initialState = {
+  difficulty: localStorage.getItem("difficulty") || "EASY",
+  name: localStorage.getItem("name") || "",
+  results: JSON.parse(localStorage.getItem("results")) || [],
+};
+
 function useProviderConfig() {
-  const [config, setConfig] = useState({
-    difficulty: "EASY",
-    name: "",
-    results: [],
-  });
+  const [config, setConfig] = useState(initialState);
 
   function setDifficulty(difficulty) {
+    localStorage.setItem("difficulty", difficulty);
     setConfig((state) => ({ ...state, difficulty }));
   }
 
   function setName(name) {
+    localStorage.setItem("name", name);
     setConfig((state) => ({ ...state, name }));
   }
 
@@ -43,6 +47,7 @@ function useProviderConfig() {
         if (a.gameTime > b.gameTime) return 1;
         return 0;
       });
+      localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });
   }

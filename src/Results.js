@@ -13,7 +13,8 @@ export default function Results() {
             <td>End Time</td>
             <td>Difficulty</td>
             <td>Game Time</td>
-            <td>Status</td>
+            <td>Result</td>
+            <td>User</td>
           </tr>
         </thead>
         <tbody>
@@ -24,7 +25,8 @@ export default function Results() {
                 <td>{res.endTime}</td>
                 <td>{res.difficulty}</td>
                 <td>{msToMS(res.gameTime)}</td>
-                <td>{res.status}</td>
+                <td>{res.result}</td>
+                <td>{res.name}</td>
               </tr>
             );
           })}

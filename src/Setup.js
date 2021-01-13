@@ -1,6 +1,8 @@
 import { useConfig } from "./lib/config";
 import { useHistory } from "react-router-dom";
 
+import UpdateName from "./components/UpdateName";
+
 export default function Setup() {
   const { setDifficulty } = useConfig();
   const history = useHistory();
@@ -12,6 +14,8 @@ export default function Setup() {
   return (
     <>
       <h1>Config</h1>
+      <h2>Set username</h2>
+      <UpdateName />
       <h2>Select difficulty</h2>
       <div>
         <button onClick={() => selectDifficulty("EASY")}>EASY</button>
