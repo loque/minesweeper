@@ -1,84 +1,84 @@
-import { useState, useEffect, useRef } from "react";
 import "./Setup.scss";
+import { useEffect, useRef } from "react";
+import { useHistory } from "react-router-dom";
 import { useConfig } from "./lib/config";
+import { DifficultyLevel } from "./lib/Game";
 import Header from "./components/Header";
-
 import {
   RiUser3Fill as UserIcon,
   RiFlashlightFill as DifficultyIcon,
   RiCheckFill as CheckIcon,
+  RiPlayFill as PlayIcon,
 } from "react-icons/ri";
 
 export default function Setup() {
+  const history = useHistory();
   const config = useConfig();
-  const [name, setName] = useState(config.name);
   const autofocus = useRef();
 
   useEffect(() => {
     if (autofocus.current) autofocus.current.focus();
   }, [autofocus]);
 
-  function submitName(e) {
-    e.preventDefault();
-    console.log("submitting name", name);
+  function changeName(e) {
+    let name = e.target.value.slice(0, 3).toUpperCase();
     config.setName(name);
   }
 
-  function changeName(e) {
-    let name = e.target.value.slice(0, 3).toUpperCase();
-    setName(name);
+  function selectDifficulty(level) {
+    return () => config.setDifficulty(level);
   }
 
-  function selectDifficulty(level) {
-    config.setDifficulty(level);
+  function diffClassName(level) {
+    return config.difficulty === level ? "selected" : "";
   }
+
   return (
     <div className="view">
       <div className="container">
-        <Header setupBtn={false} backBtn={true} />
+        <Header setupBtn={false} />
         <div className="section">
           <h3 className="section-title">
             <UserIcon />
-            Set your username
+            Set your name
           </h3>
-          <form className="section-body input-group" onSubmit={submitName}>
+          <div className="section-body name">
             <input
               type="text"
               ref={autofocus}
-              value={name}
+              value={config.name}
               onChange={changeName}
             />
-            <button type="submit">
-              <CheckIcon />
-            </button>
-          </form>
+            <small className={config.name.length !== 3 ? "shown" : "hidden"}>
+              (*) name must be 3 characters long.
+            </small>
+          </div>
         </div>
         <div className="section">
           <h3 className="section-title">
             <DifficultyIcon /> Select difficulty level
           </h3>
-          <div className="section-body">
-            <div className="button-group">
+          <div className="section-body difficulty">
+            {Object.keys(DifficultyLevel).map((level) => (
               <button
-                className={config.difficulty === "EASY" && "selected"}
-                onClick={() => selectDifficulty("EASY")}
+                key={level}
+                className={diffClassName(level)}
+                onClick={selectDifficulty(level)}
               >
-                EASY
+                {level}
               </button>
-              <button
-                className={config.difficulty === "MEDIUM" && "selected"}
-                onClick={() => selectDifficulty("MEDIUM")}
-              >
-                MEDIUM
-              </button>
-              <button
-                className={config.difficulty === "HARD" && "selected"}
-                onClick={() => selectDifficulty("HARD")}
-              >
-                HARD
-              </button>
-            </div>
+            ))}
           </div>
+        </div>
+        <div className="play-button-wrapper">
+          <button
+            className="button text-icon play-button"
+            onClick={() => history.push("/game")}
+            disabled={config.name.length !== 3}
+          >
+            Start game
+            <PlayIcon className="yellow" />
+          </button>
         </div>
       </div>
     </div>

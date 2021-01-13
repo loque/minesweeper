@@ -6,6 +6,12 @@
   }
 }
 
+.play-again-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 2em;
+}
+
 table.results-table {
   width: 100%;
   tr td {
@@ -46,5 +52,14 @@ table.results-table {
   }
   tbody {
     font-size: 0.9rem;
+  }
+}
+.clear-btn-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.8rem;
+  .clear-btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
   }
 }

@@ -61,7 +61,7 @@ export default function Game() {
 
         <div className={`board ${game.state === "ENDED" && "disabled"}`}>
           {game.board.map((row, rowIdx) => {
-            const tileSize = `min(${Math.floor(100 / row.length)}vw, 3rem)`;
+            const tileSize = `calc(${Math.floor(100 / row.length)}% + 3px)`;
             return (
               <div className="board-row" key={rowIdx}>
                 {row.map((tile) => {
@@ -74,13 +74,17 @@ export default function Game() {
                       } ${game.state === "ENDED" && "disabled"} ${
                         color[Math.min(value, color.length - 1)]
                       } ${value === 0 && "empty"}`}
-                      style={{ width: tileSize, height: tileSize }}
+                      style={{ width: tileSize, paddingTop: tileSize }}
                       onClick={tileLeftClickHandler(tile)}
                       onContextMenu={tileRightClickHandler(tile)}
                     >
-                      {!!value && value}
-                      {tile.state === "FLAGGED" && <FlagIcon className="red" />}
-                      {tile.state === "SHOWN" && tile.hasMine && <MineIcon />}
+                      <div className="board-tile-content">
+                        {!!value && value}
+                        {tile.state === "FLAGGED" && (
+                          <FlagIcon className="red" />
+                        )}
+                        {tile.state === "SHOWN" && tile.hasMine && <MineIcon />}
+                      </div>
                     </div>
                   );
                 })}

@@ -52,7 +52,16 @@ function useProviderConfig() {
     });
   }
 
-  return { ...config, setDifficulty, setName, addResult };
+  function clearResults() {
+    setConfig((state) => {
+      let { results } = state;
+      results = [];
+      localStorage.setItem("results", JSON.stringify(results));
+      return { ...state, results };
+    });
+  }
+
+  return { ...config, setDifficulty, setName, addResult, clearResults };
 }
 
 const difficultyScore = {

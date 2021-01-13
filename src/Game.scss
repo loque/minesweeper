@@ -19,13 +19,11 @@
 }
 
 .board-tile {
-  border: 1.5px solid rgb(41, 36, 37);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 1.5px;
   font-size: 1.5em;
   background-color: #373737;
   border-radius: 4px;
+  position: relative;
 
   &.hidden:not(.disabled) {
     cursor: pointer;
@@ -48,6 +46,16 @@
     &:not(.disabled) {
       cursor: pointer;
     }
+  }
+  .board-tile-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -88,7 +96,7 @@
       font-size: 2rem;
       padding-bottom: 3rem;
       svg {
-        font-size: 3rem;
+        font-size: 3em;
       }
     }
     .endgame-actions {

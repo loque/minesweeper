@@ -17,6 +17,12 @@ export default function Header({
     <header>
       {title && title}
       {!title && <h1>minesweeper</h1>}
+      {playAgainBtn && (
+        <Link className="button icon-text" to="/game">
+          <ReloadIcon />
+          Play again
+        </Link>
+      )}
       {setupBtn && (
         <Link to="/setup" className="button transparent" title="Setup">
           <SetupIcon />
@@ -30,12 +36,6 @@ export default function Header({
         >
           <BackIcon />
         </button>
-      )}
-      {playAgainBtn && (
-        <Link className="button icon-text" to="/game">
-          <ReloadIcon />
-          Play again
-        </Link>
       )}
     </header>
   );
