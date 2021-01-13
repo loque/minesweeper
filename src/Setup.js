@@ -7,7 +7,6 @@ import Header from "./components/Header";
 import {
   RiUser3Fill as UserIcon,
   RiFlashlightFill as DifficultyIcon,
-  RiCheckFill as CheckIcon,
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
 
