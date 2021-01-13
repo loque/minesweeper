@@ -1,14 +1,14 @@
 import { useRef, useState, useEffect } from "react";
 import Game from "./Game";
 
-export function useGame(difficultyLevel) {
+export function useGame(difficulty) {
   const game = useRef();
   const [props, setProps] = useState({});
 
   useEffect(() => {
-    game.current = new Game(difficultyLevel);
+    game.current = new Game(difficulty);
     setProps(extractProps(game.current));
-  }, [difficultyLevel]);
+  }, [difficulty]);
 
   function flagTile(tile) {
     if (game.current) {
@@ -35,7 +35,7 @@ function extractProps(game) {
     formatMs,
     startDateTime,
     placedFlags,
-    difficultyLevel,
+    difficultyLevel: difficulty,
   } = game;
   return {
     state,
@@ -44,6 +44,6 @@ function extractProps(game) {
     formatMs,
     startDateTime,
     placedFlags,
-    difficultyLevel,
+    difficulty,
   };
 }
