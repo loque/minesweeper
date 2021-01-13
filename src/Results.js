@@ -11,6 +11,7 @@ import {
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
   RiTimerFill as TimeIcon,
+  RiCalendarEventFill as CalendarIcon,
   RiPlayMiniFill as PlayIcon,
   RiStopMiniFill as StopIcon,
   RiCloseLine as ClearIcon,
@@ -43,16 +44,21 @@ export default function Results() {
           <table className="results-table">
             <thead>
               <tr>
-                <td title="Time">
+                <td title="Time" className="hideOnMobile">
                   <span>
                     <TimeIcon />
                     <span>Start/End</span>
                   </span>
                 </td>
+                <td title="Date" className="showOnMobile">
+                  <span>
+                    <CalendarIcon />
+                  </span>
+                </td>
                 <td title="Time" className="regular-width">
                   <span>
                     <TimeIcon />
-                    <span>Game</span>
+                    <span className="hideOnMobile">Game</span>
                   </span>
                 </td>
                 <td title="Difficulty" className="regular-width">
@@ -70,7 +76,7 @@ export default function Results() {
               {config.results.slice(0, 10).map((res, resIdx) => {
                 return (
                   <tr key={resIdx}>
-                    <td>
+                    <td className="hideOnMobile">
                       <div className="time">
                         <PlayIcon /> {res.startTime}
                       </div>
@@ -78,11 +84,13 @@ export default function Results() {
                         <StopIcon /> {res.endTime}
                       </div>
                     </td>
+                    <td className="showOnMobile">
+                      {res.startTime.split(", ")[0]}
+                    </td>
                     <td>
                       <div>{msToMS(res.gameTime)}</div>
                     </td>
                     <td>
-                      {/* <div>Difficulty</div> */}
                       <div>{res.difficulty}</div>
                     </td>
                     <td>

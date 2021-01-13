@@ -15,7 +15,7 @@
 table.results-table {
   width: 100%;
   tr td {
-    padding: 0.5em 0;
+    padding: 1em 0;
   }
   td {
     text-align: center;
@@ -61,5 +61,16 @@ table.results-table {
   .clear-btn {
     font-size: 0.8rem;
     padding: 0.2rem 0.6rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .hideOnMobile {
+    display: none !important;
+  }
+}
+@media (min-width: 600px) {
+  .showOnMobile {
+    display: none;
   }
 }
