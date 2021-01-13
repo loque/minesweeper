@@ -1,4 +1,4 @@
-import { Tile, TileState } from "./Tile.ts";
+import { Tile, TileState } from "./Tile";
 
 enum GameState {
   IDLE = "IDLE",
@@ -12,8 +12,7 @@ enum GameResult {
   LOST = "LOST",
 }
 
-enum DifficultyLevel {
-  TEST = "TEST",
+export enum DifficultyLevel {
   EASY = "EASY",
   MEDIUM = "MEDIUM",
   HARD = "HARD",
@@ -26,7 +25,6 @@ type GameConstraints = {
 };
 
 const GameConstraintsOptions = {
-  [DifficultyLevel.TEST]: { cols: 5, rows: 4, mines: 2 },
   [DifficultyLevel.EASY]: { cols: 10, rows: 8, mines: 10 },
   [DifficultyLevel.MEDIUM]: { cols: 18, rows: 14, mines: 40 },
   [DifficultyLevel.HARD]: { cols: 24, rows: 20, mines: 99 },
@@ -67,19 +65,6 @@ export default class Game {
     );
   }
 
-  // return board as a matrix for better visualization
-  get board(): Tile[][] {
-    const matrix: Tile[][] = [];
-    for (let rowIdx = 0; rowIdx < this.constraints.rows; rowIdx++) {
-      const start = rowIdx * this.constraints.cols;
-      const end = start + this.constraints.cols;
-      // prevent board mutation by returning a clone
-      const row = this._board.slice(start, end).map((tile) => tile.clone());
-      matrix.push(row);
-    }
-    return matrix;
-  }
-
   placeMines(exceptionTile: Tile) {
     // select indexes of all tiles but `exceptionTile`
     const availableIndexes = shuffle(
@@ -99,7 +84,24 @@ export default class Game {
     this.minesPlaced = true;
   }
 
-  showTile(tile: Tile) {
+  // return board as a matrix for better visualization
+  get board(): Tile[][] {
+    const matrix: Tile[][] = [];
+    for (let rowIdx = 0; rowIdx < this.constraints.rows; rowIdx++) {
+      const start = rowIdx * this.constraints.cols;
+      const end = start + this.constraints.cols;
+      // prevent board mutation by returning a clone
+      const row = this._board.slice(start, end).map((tile) => tile.clone());
+      matrix.push(row);
+    }
+    return matrix;
+  }
+
+  flagTile(tile: Tile) {
+    this.placedFlags += this._board[tile.index].toggleFlag();
+  }
+
+  showTile(tile: Tile, endIfMineIsFound = true) {
     /*
 			if `nonMineTilesShown` === 0 => `placeMines()` (because The first click in any game
 			will never be a mine) AND set `#startDateTime` AND set `state` to `GameState.STARTED`
@@ -144,6 +146,12 @@ export default class Game {
           this.showTile(adjTile);
         }
       }
+    } else if (endIfMineIsFound) {
+      // a mine is found and `endIfMineIsFound` === true
+      this._board[tile.index].show();
+      this.state = GameState.ENDED;
+      this.result = GameResult.LOST;
+      this.#endDateTime = new Date();
     }
   }
 
@@ -176,6 +184,38 @@ export default class Game {
 
     return adjTiles;
   }
+
+  get elapsedTime() {
+    let time = "00:00";
+    if (this.#startDateTime !== null) {
+      time = this.formatMs(+new Date() - +this.#startDateTime);
+    }
+    return time;
+  }
+
+  get gameTime() {
+    let time = "00:00";
+    if (this.#endDateTime !== null && this.#startDateTime !== null) {
+      time = this.formatMs(+this.#endDateTime - +this.#startDateTime);
+    }
+    return time;
+  }
+
+  formatMs(ms: number): string {
+    return msToMS(ms);
+  }
+
+  get startDateTime() {
+    return this.#startDateTime;
+  }
+
+  get startTime() {
+    return this.#startDateTime?.toLocaleString("en-US");
+  }
+
+  get endTime() {
+    return this.#endDateTime?.toLocaleString("en-US");
+  }
 }
 
 // from: https://stackoverflow.com/a/2450976/3622350
@@ -197,31 +237,22 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-export function log(game: Game) {
-  console.log(game.board.map((row) => row.map(mapTile)));
-  if (game.result === GameResult.NONE) {
-    console.log(game.state, game.result, game.placedFlags);
-  } else {
-    console.log(
-      game.state,
-      game.result,
-      game.difficultyLevel,
-      game.placedFlags
-    );
+// from: https://stackoverflow.com/a/29816921/3622350
+function msToMS(ms: number) {
+  // Convert to seconds:
+  let seconds = ms / 1000;
+  // Extract minutes:
+  let minutes = Math.floor(seconds / 60); // 60 seconds in 1 minute
+  // Keep only seconds not extracted to minutes:
+  seconds = seconds % 60;
+  return numPad(minutes) + ":" + numPad(Math.floor(seconds));
+}
+
+function numPad(str: string | number, length: number = 2) {
+  str = str + "";
+  if (str.length < length) {
+    let diff = length - str.length;
+    str = "0".repeat(diff) + str;
   }
+  return str;
 }
-
-function mapTile(tile: Tile) {
-  if (tile.state === TileState.HIDDEN) return "  ";
-  if (tile.state === TileState.FLAGGED) return "🏳️ ";
-  if (tile.state === TileState.SHOWN)
-    return tile.hasMine ? "💣" : tile.adjMines + " ";
-}
-
-/* 
-// testing with deno
-const GG = await import('./src/lib/Game.ts'); const Game = GG.default; const log
-= GG.log; const game = new Game('TEST');
-
-game.showTile(game.board[1][2]); log(game);
-*/
