@@ -47,7 +47,7 @@ export default class Game {
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
 
-  _board: Tile[] = [];
+  #board: Tile[] = [];
   minesIndexes: number[] = [];
 
   constructor(difficulty: DifficultyLevel) {
@@ -59,113 +59,81 @@ export default class Game {
   }
 
   createEmptyBoard() {
-    this._board = Array.from(
+    this.#board = Array.from(
       { length: this.totalTiles },
       (v, index) => new Tile(TileState.HIDDEN, false, index)
     );
   }
 
-  placeMines(exceptionTile: Tile) {
-    // select indexes of all tiles but `exceptionTile`
-    const availableIndexes = shuffle(
-      this._board
-        .filter((tile) => tile.index !== exceptionTile.index)
-        .map((tile) => tile.index)
-    );
-
-    // store indexes of tiles with mines
-    this.minesIndexes = availableIndexes.slice(0, this.constraints.mines);
-
-    // place mines on randomly selected tiles (excluding `exceptionTile`)
-    for (const index of this.minesIndexes) {
-      this._board[index].hasMine = true;
-    }
-
-    this.minesPlaced = true;
-  }
-
-  // return board as a matrix for better visualization
-  get board(): Tile[][] {
-    const matrix: Tile[][] = [];
-    for (let rowIdx = 0; rowIdx < this.constraints.rows; rowIdx++) {
-      const start = rowIdx * this.constraints.cols;
-      const end = start + this.constraints.cols;
-      // prevent board mutation by returning a clone
-      const row = this._board.slice(start, end).map((tile) => tile.clone());
-      matrix.push(row);
-    }
-    return matrix;
-  }
-
   flagTile(tile: Tile) {
-    this.placedFlags += this._board[tile.index].toggleFlag();
+    this.placedFlags += this.#board[tile.index].toggleFlag();
   }
 
   showTile(tile: Tile, endIfMineIsFound = true) {
-    /*
-			if `nonMineTilesShown` === 0 => `placeMines()` (because The first click in any game
-			will never be a mine) AND set `#startDateTime` AND set `state` to `GameState.STARTED`
-
-			if `Tile` has a mine => game lost (show all mines)
-			else, reveal number of adj tiles (including diagonals) that are
-				covering mines (we'll call it `adjMines`)
-				if `adjMines` === 0 => flip every adjacent tile
-			
-        
-        `nonMineTilesShown`++
-        if `nonMineTilesShown` === `nonMineTiles` => player wins
-    */
-
     if (this.state === GameState.ENDED) return;
 
-    // if this is the first move, place mines now
-    // we do it now so that we guarantee that the first tile shown is not a mine
-    if (!this.minesPlaced) {
-      this.placeMines(tile);
+    // We place mines just before the first move because
+    // the first move should never be a mine
+    if (this.placeMines(tile)) {
       this.state = GameState.STARTED;
       this.#startDateTime = new Date();
     }
 
-    if (!tile.hasMine) {
-      const adjTiles = this.getAdjacentTiles(tile);
-      const adjTilesWithMines = adjTiles.filter((tile) => tile.hasMine).length;
-      if (this._board[tile.index].show(adjTilesWithMines)) {
-        this.nonMineTilesShown++;
-      }
-      if (this.nonMineTilesShown === this.nonMineTiles) {
-        this.state = GameState.ENDED;
-        this.result = GameResult.WON;
-        this.#endDateTime = new Date();
-        return;
-      }
-      if (adjTilesWithMines === 0) {
-        const adjTilesHidden = adjTiles.filter(
-          (tile) => tile.state === TileState.HIDDEN
-        );
-        for (const adjTile of adjTilesHidden) {
-          this.showTile(adjTile);
-        }
-      }
-    } else if (endIfMineIsFound) {
-      // a mine is found and `endIfMineIsFound` === true
-      this._board[tile.index].show();
+    if (tile.hasMine && endIfMineIsFound) {
+      // The user has found a mine => game lost
+      this.#board[tile.index].show();
       this.state = GameState.ENDED;
       this.result = GameResult.LOST;
       this.#endDateTime = new Date();
+      return;
+    }
+
+    // The tile does not have a mine, so show it
+    const adjTiles = this.getAdjacentTiles(tile);
+    const adjTilesWithMines = adjTiles.filter((tile) => tile.hasMine).length;
+    if (this.#board[tile.index].show(adjTilesWithMines)) {
+      this.nonMineTilesShown++;
+    }
+
+    if (this.nonMineTilesShown === this.nonMineTiles) {
+      // All non-mine tiles have been revealed so the user won
+      this.state = GameState.ENDED;
+      this.result = GameResult.WON;
+      this.#endDateTime = new Date();
+      return;
+    }
+
+    if (adjTilesWithMines === 0) {
+      // If all adjacent tiles do not have a mine, then show them all
+      const adjTilesHidden = adjTiles.filter(
+        (tile) => tile.state === TileState.HIDDEN
+      );
+      for (const adjTile of adjTilesHidden) {
+        this.showTile(adjTile, false);
+      }
     }
   }
 
-  inspectAdjacentTiles(tile: Tile) {
-    if (tile.state !== TileState.SHOWN) return;
-    for (const adjTile of this.getAdjacentTiles(tile)) {
-      this._board[adjTile.index].inspecting = true;
-    }
-  }
+  placeMines(exceptionTile: Tile) {
+    // Only place mines once
+    if (this.minesPlaced) return false;
 
-  inspectAllTilesOff() {
-    for (const tile of this._board) {
-      tile.inspecting = false;
+    // Select indexes of all tiles but `exceptionTile`
+    const availableIndexes = shuffle(
+      this.#board
+        .filter((tile) => tile.index !== exceptionTile.index)
+        .map((tile) => tile.index)
+    );
+
+    // Store indexes of all tiles with mines
+    this.minesIndexes = availableIndexes.slice(0, this.constraints.mines);
+
+    // Place mines on randomly selected tiles (excluding `exceptionTile`)
+    for (const index of this.minesIndexes) {
+      this.#board[index].hasMine = true;
     }
+
+    return (this.minesPlaced = true);
   }
 
   getAdjacentTiles(tile: Tile) {
@@ -196,6 +164,32 @@ export default class Game {
     if (bottomRightTile) adjTiles.push(bottomRightTile);
 
     return adjTiles;
+  }
+
+  // Return the board as a matrix for better visualization
+  get board(): Tile[][] {
+    const matrix: Tile[][] = [];
+    for (let rowIdx = 0; rowIdx < this.constraints.rows; rowIdx++) {
+      const start = rowIdx * this.constraints.cols;
+      const end = start + this.constraints.cols;
+      // Prevent board mutation by returning a clone
+      const row = this.#board.slice(start, end).map((tile) => tile.clone());
+      matrix.push(row);
+    }
+    return matrix;
+  }
+
+  inspectAdjacentTiles(tile: Tile) {
+    if (tile.state !== TileState.SHOWN) return;
+    for (const adjTile of this.getAdjacentTiles(tile)) {
+      this.#board[adjTile.index].inspecting = true;
+    }
+  }
+
+  inspectAllTilesOff() {
+    for (const tile of this.#board) {
+      tile.inspecting = false;
+    }
   }
 
   get gameTime() {
