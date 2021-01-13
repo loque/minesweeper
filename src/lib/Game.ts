@@ -1,35 +1,4 @@
-enum TileState {
-  HIDDEN = "HIDDEN",
-  SHOWN = "SHOWN",
-  FLAGGED = "FLAGGED",
-}
-
-export class Tile {
-  state: TileState;
-  hasMine: boolean;
-  index: number;
-  adjMines: number | null = null;
-
-  constructor(state: TileState, hasMine: boolean, index: number) {
-    this.state = state;
-    this.hasMine = hasMine;
-    this.index = index;
-  }
-
-  show(adjMines: number | null = null): boolean {
-    // can not show FLAGGED or already SHOWN tiles
-    if (this.state === TileState.HIDDEN) {
-      this.state = TileState.SHOWN;
-      this.adjMines = adjMines;
-      return true;
-    }
-    return false;
-  }
-
-  clone() {
-    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
-  }
-}
+import { Tile, TileState } from "./Tile.ts";
 
 enum GameState {
   IDLE = "IDLE",
@@ -113,8 +82,21 @@ export default class Game {
 
   placeMines(exceptionTile: Tile) {
     // select indexes of all tiles but `exceptionTile`
+    const availableIndexes = shuffle(
+      this._board
+        .filter((tile) => tile.index !== exceptionTile.index)
+        .map((tile) => tile.index)
+    );
+
     // store indexes of tiles with mines
+    this.minesIndexes = availableIndexes.slice(0, this.constraints.mines);
+
     // place mines on randomly selected tiles (excluding `exceptionTile`)
+    for (const index of this.minesIndexes) {
+      this._board[index].hasMine = true;
+    }
+
+    this.minesPlaced = true;
   }
 
   showTile(tile: Tile) {
@@ -194,6 +176,25 @@ export default class Game {
 
     return adjTiles;
   }
+}
+
+// from: https://stackoverflow.com/a/2450976/3622350
+function shuffle<T>(array: T[]): T[] {
+  let currIdx = array.length;
+
+  // While there remain elements to shuffle...
+  while (0 !== currIdx) {
+    // Pick a remaining element...
+    let randomIdx = Math.floor(Math.random() * currIdx);
+    currIdx--;
+
+    // And swap it with the current element.
+    let tmpVal = array[currIdx];
+    array[currIdx] = array[randomIdx];
+    array[randomIdx] = tmpVal;
+  }
+
+  return array;
 }
 
 export function log(game: Game) {
