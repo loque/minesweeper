@@ -26,6 +26,9 @@
 
   &.hidden:not(.disabled) {
     cursor: pointer;
+    &.inspecting {
+      background-color: #ffffffbd;
+    }
   }
 
   &.shown {
@@ -39,11 +42,18 @@
       color: black;
       background-color: #d04a4a;
     }
+
+    &:not(.hasMine) {
+      cursor: zoom-in;
+    }
   }
 
   &.flagged {
     &:not(.disabled) {
       cursor: pointer;
+      &.inspecting {
+        background-color: #ffffff52;
+      }
     }
   }
   .board-tile-content {

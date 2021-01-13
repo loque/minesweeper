@@ -24,6 +24,9 @@ export default function Game() {
   const prevGameState = useRef(game.state);
   const board = useRef();
   const [boardWidth, setBoardWidth] = useState(0);
+  const [tileUnderMouse, setTileUnderMouse] = useState();
+  const [inspectTile, setInspectTile] = useState(false);
+  const inspectingTile = useRef("");
 
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
@@ -59,18 +62,58 @@ export default function Game() {
     };
   }, [board]);
 
-  function tileLeftClickHandler(tile) {
+  function tileOnMouseEnter(tile) {
     return (e) => {
       e.preventDefault();
-      game.showTile(tile);
+      setTileUnderMouse(tile);
     };
   }
-  function tileRightClickHandler(tile) {
+
+  function tileOnMouseLeave(e) {
+    e.preventDefault();
+    setTileUnderMouse();
+    game.inspectAllTilesOff();
+  }
+
+  useEffect(() => {
+    if (
+      inspectingTile.current !== tileUnderMouse &&
+      tileUnderMouse &&
+      inspectTile
+    ) {
+      inspectingTile.current = tileUnderMouse;
+      game.inspectAdjacentTiles(tileUnderMouse);
+    }
+  }, [game, tileUnderMouse, inspectTile, inspectingTile]);
+
+  function tileClickHandler(tile) {
+    return (e) => {
+      e.preventDefault();
+      if (e.button === 0) {
+        game.showTile(tile);
+      } else if (e.button === 1) {
+        setInspectTile(true);
+      }
+    };
+  }
+
+  function tileInspectingOff(tile) {
+    return (e) => {
+      e.preventDefault();
+      if (e.button === 1) {
+        setInspectTile(false);
+        game.inspectAllTilesOff();
+      }
+    };
+  }
+
+  function tileLongPressHandler(tile) {
     return (e) => {
       e.preventDefault();
       game.flagTile(tile);
     };
   }
+
   let tileMargin = 0;
   let tileSize = 0;
   if (game.board && boardWidth) {
@@ -83,6 +126,8 @@ export default function Game() {
         break;
       case "HARD":
         tileMargin = 0.5;
+        break;
+      default:
         break;
     }
 
@@ -113,15 +158,20 @@ export default function Game() {
                           tile.hasMine && "hasMine"
                         } ${game.state === "ENDED" && "disabled"} ${
                           color[Math.min(value, color.length - 1)]
-                        } ${value === 0 && "empty"}`}
+                        } ${value === 0 && "empty"} ${
+                          tile.inspecting && "inspecting"
+                        }`}
                         style={{
                           width: tileSize + "px",
                           height: tileSize + "px",
                           margin: tileMargin + "px",
                           fontSize: tileMargin + "em",
                         }}
-                        onClick={tileLeftClickHandler(tile)}
-                        onContextMenu={tileRightClickHandler(tile)}
+                        onMouseEnter={tileOnMouseEnter(tile)}
+                        onMouseLeave={tileOnMouseLeave}
+                        onMouseDown={tileClickHandler(tile)}
+                        onMouseUp={tileInspectingOff(tile)}
+                        onContextMenu={tileLongPressHandler(tile)}
                       >
                         <div className="board-tile-content">
                           {!!value && value}

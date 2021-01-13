@@ -9,6 +9,7 @@ export class Tile {
   hasMine: boolean;
   index: number;
   adjMines: number | null = null;
+  inspecting: boolean = false;
 
   constructor(state: TileState, hasMine: boolean, index: number) {
     this.state = state;

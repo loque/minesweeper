@@ -24,6 +24,30 @@ export function useGame(difficulty) {
     }
   }
 
+  function inspectAdjacentTiles(tile) {
+    if (game.current) {
+      game.current.inspectAdjacentTiles(tile);
+      setProps(extractProps(game.current));
+    }
+  }
+
+  // const inspectAdjacentTiles = useCallback(
+  //   (tile) => {
+  //     if (game.current) {
+  //       game.current.inspectAdjacentTiles(tile);
+  //       setProps(extractProps(game.current));
+  //     }
+  //   },
+  //   [game]
+  // );
+
+  function inspectAllTilesOff() {
+    if (game.current) {
+      game.current.inspectAllTilesOff();
+      setProps(extractProps(game.current));
+    }
+  }
+
   const reset = useCallback(() => {
     if (game.current) {
       game.current = new Game(difficulty);
@@ -31,7 +55,14 @@ export function useGame(difficulty) {
     }
   }, [game, difficulty]);
 
-  return { ...props, flagTile, showTile, reset };
+  return {
+    ...props,
+    flagTile,
+    showTile,
+    reset,
+    inspectAdjacentTiles,
+    inspectAllTilesOff,
+  };
 }
 
 function extractProps(game) {

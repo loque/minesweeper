@@ -155,6 +155,19 @@ export default class Game {
     }
   }
 
+  inspectAdjacentTiles(tile: Tile) {
+    if (tile.state !== TileState.SHOWN) return;
+    for (const adjTile of this.getAdjacentTiles(tile)) {
+      this._board[adjTile.index].inspecting = true;
+    }
+  }
+
+  inspectAllTilesOff() {
+    for (const tile of this._board) {
+      tile.inspecting = false;
+    }
+  }
+
   getAdjacentTiles(tile: Tile) {
     if (!(tile instanceof Tile))
       throw TypeError(`expected 'tile' to be an intance of Tile`);
