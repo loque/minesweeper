@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import { useGame } from "./lib/useGame";
@@ -22,6 +22,8 @@ export default function Game() {
   const config = useConfig();
   const game = useGame(config.difficulty);
   const prevGameState = useRef(game.state);
+  const board = useRef();
+  const [boardWidth, setBoardWidth] = useState(0);
 
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
@@ -40,7 +42,23 @@ export default function Game() {
     }
   }, [prevGameState, game.state, config, result]);
 
-  if (!game.board) return null;
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setBoardWidth(entry.contentRect.width);
+      }
+    });
+    const currBoard = board.current;
+    if (currBoard) {
+      resizeObserver.observe(currBoard);
+    }
+    return () => {
+      if (currBoard) {
+        resizeObserver.unobserve(currBoard);
+      }
+    };
+  }, [board]);
+
   function tileLeftClickHandler(tile) {
     return (e) => {
       e.preventDefault();
@@ -53,44 +71,73 @@ export default function Game() {
       game.flagTile(tile);
     };
   }
+  let tileMargin = 0;
+  let tileSize = 0;
+  if (game.board && boardWidth) {
+    switch (game.difficulty) {
+      case "EASY":
+        tileMargin = 1.5;
+        break;
+      case "MEDIUM":
+        tileMargin = 1;
+        break;
+      case "HARD":
+        tileMargin = 0.5;
+        break;
+    }
+
+    const cols = game.board[0].length;
+    tileSize = boardWidth / cols - tileMargin * 2;
+  }
+
   return (
     <div className="view">
       <div className="container">
         <Header />
         <StatusBar game={game} />
 
-        <div className={`board ${game.state === "ENDED" && "disabled"}`}>
-          {game.board.map((row, rowIdx) => {
-            const tileSize = `calc(${Math.floor(100 / row.length)}% + 3px)`;
-            return (
-              <div className="board-row" key={rowIdx}>
-                {row.map((tile) => {
-                  const value = tile.adjMines || 0;
-                  return (
-                    <div
-                      key={tile.index}
-                      className={`board-tile ${tile.state.toLowerCase()} ${
-                        tile.hasMine && "hasMine"
-                      } ${game.state === "ENDED" && "disabled"} ${
-                        color[Math.min(value, color.length - 1)]
-                      } ${value === 0 && "empty"}`}
-                      style={{ width: tileSize, paddingTop: tileSize }}
-                      onClick={tileLeftClickHandler(tile)}
-                      onContextMenu={tileRightClickHandler(tile)}
-                    >
-                      <div className="board-tile-content">
-                        {!!value && value}
-                        {tile.state === "FLAGGED" && (
-                          <FlagIcon className="red" />
-                        )}
-                        {tile.state === "SHOWN" && tile.hasMine && <MineIcon />}
+        <div
+          ref={board}
+          className={`board ${game.state === "ENDED" && "disabled"}`}
+        >
+          {game.board &&
+            game.board.map((row, rowIdx) => {
+              return (
+                <div className="board-row" key={rowIdx}>
+                  {row.map((tile) => {
+                    const value = tile.adjMines || 0;
+                    return (
+                      <div
+                        key={tile.index}
+                        className={`board-tile ${tile.state.toLowerCase()} ${
+                          tile.hasMine && "hasMine"
+                        } ${game.state === "ENDED" && "disabled"} ${
+                          color[Math.min(value, color.length - 1)]
+                        } ${value === 0 && "empty"}`}
+                        style={{
+                          width: tileSize + "px",
+                          height: tileSize + "px",
+                          margin: tileMargin + "px",
+                          fontSize: tileMargin + "em",
+                        }}
+                        onClick={tileLeftClickHandler(tile)}
+                        onContextMenu={tileRightClickHandler(tile)}
+                      >
+                        <div className="board-tile-content">
+                          {!!value && value}
+                          {tile.state === "FLAGGED" && (
+                            <FlagIcon className="red" />
+                          )}
+                          {tile.state === "SHOWN" && tile.hasMine && (
+                            <MineIcon />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+                    );
+                  })}
+                </div>
+              );
+            })}
         </div>
         {game.state === "ENDED" && <EndGame result={game.result} />}
       </div>
