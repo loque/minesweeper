@@ -14,12 +14,6 @@ export const useConfig = () => {
   return useContext(ConfigContext);
 };
 
-const difficultyScore = {
-  EASY: 0,
-  MEDIUM: 1,
-  HARD: 2,
-};
-
 function useProviderConfig() {
   const [config, setConfig] = useState({
     difficulty: "EASY",
@@ -55,3 +49,9 @@ function useProviderConfig() {
 
   return { ...config, setDifficulty, setName, addResult };
 }
+
+const difficultyScore = {
+  EASY: 0,
+  MEDIUM: 1,
+  HARD: 2,
+};

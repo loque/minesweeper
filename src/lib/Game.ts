@@ -185,24 +185,12 @@ export default class Game {
     return adjTiles;
   }
 
-  get elapsedTime() {
-    let time = "00:00";
-    if (this.#startDateTime !== null) {
-      time = this.formatMs(+new Date() - +this.#startDateTime);
-    }
-    return time;
-  }
-
   get gameTime() {
-    let time = "00:00";
+    let time = 0;
     if (this.#endDateTime !== null && this.#startDateTime !== null) {
-      time = this.formatMs(+this.#endDateTime - +this.#startDateTime);
+      time = +this.#endDateTime - +this.#startDateTime;
     }
     return time;
-  }
-
-  formatMs(ms: number): string {
-    return msToMS(ms);
   }
 
   get startDateTime() {
@@ -235,24 +223,4 @@ function shuffle<T>(array: T[]): T[] {
   }
 
   return array;
-}
-
-// from: https://stackoverflow.com/a/29816921/3622350
-function msToMS(ms: number) {
-  // Convert to seconds:
-  let seconds = ms / 1000;
-  // Extract minutes:
-  let minutes = Math.floor(seconds / 60); // 60 seconds in 1 minute
-  // Keep only seconds not extracted to minutes:
-  seconds = seconds % 60;
-  return numPad(minutes) + ":" + numPad(Math.floor(seconds));
-}
-
-function numPad(str: string | number, length: number = 2) {
-  str = str + "";
-  if (str.length < length) {
-    let diff = length - str.length;
-    str = "0".repeat(diff) + str;
-  }
-  return str;
 }

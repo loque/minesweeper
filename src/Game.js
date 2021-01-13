@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import { useGame } from "./lib/useGame";
 import { useConfig } from "./lib/config";
+import { msToMS } from "./lib/time";
 
-function ElapsedTime({ startTime, formatTime, run }) {
+function ElapsedTime({ startTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
   useEffect(() => {
     let intervalId;
     if (run) {
       intervalId = setInterval(() => {
-        setElapsedTime(formatTime(new Date() - startTime));
+        setElapsedTime(msToMS(new Date() - startTime));
       }, 300);
     }
     return () => {
@@ -18,18 +19,33 @@ function ElapsedTime({ startTime, formatTime, run }) {
         clearInterval(intervalId);
       }
     };
-  }, [startTime, run, formatTime]);
+  }, [startTime, run]);
   return <div>Elapsed time {elapsedTime}</div>;
 }
 
 export default function Game() {
   const location = useLocation();
+  const prevLocationKey = useRef(location.key);
   const config = useConfig();
   const game = useGame(config.difficulty);
+  const prevGameState = useRef(game.state);
 
   useEffect(() => {
-    game.reset();
-  }, [location.key]);
+    if (prevLocationKey.current !== location.key) {
+      prevLocationKey.current = location.key;
+      game.reset();
+    }
+  }, [game, prevLocationKey, location.key]);
+
+  const result = buildResult(game);
+  useEffect(() => {
+    if (prevGameState.current !== game.state) {
+      prevGameState.current = game.state;
+      if (game.state === "ENDED") {
+        config.addResult(result);
+      }
+    }
+  }, [prevGameState, game.state, config, result]);
 
   if (!game.board) return null;
   function tileLeftClickHandler(tile) {
@@ -56,7 +72,6 @@ export default function Game() {
       <div>Placed flags: {game.placedFlags}</div>
       <ElapsedTime
         startTime={game.startDateTime}
-        formatTime={game.formatMs}
         run={game.state === "STARTED"}
       />
       <div>Current level: {game.difficulty}</div>
@@ -94,4 +109,14 @@ export default function Game() {
       )}
     </>
   );
+}
+
+function buildResult(game) {
+  return {
+    startTime: game.startTime,
+    endTime: game.endTime,
+    difficulty: game.difficulty,
+    gameTime: game.gameTime,
+    status: game.status,
+  };
 }

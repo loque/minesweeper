@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Game from "./Game";
 
 export function useGame(difficulty) {
@@ -24,12 +24,12 @@ export function useGame(difficulty) {
     }
   }
 
-  function reset() {
+  const reset = useCallback(() => {
     if (game.current) {
       game.current = new Game(difficulty);
       setProps(extractProps(game.current));
     }
-  }
+  }, [game, difficulty]);
 
   return { ...props, flagTile, showTile, reset };
 }
@@ -41,6 +41,9 @@ function extractProps(game) {
     board,
     formatMs,
     startDateTime,
+    startTime,
+    endTime,
+    gameTime,
     placedFlags,
     difficulty,
   } = game;
@@ -50,6 +53,9 @@ function extractProps(game) {
     board,
     formatMs,
     startDateTime,
+    startTime,
+    endTime,
+    gameTime,
     placedFlags,
     difficulty,
   };
