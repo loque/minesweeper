@@ -1,0 +1,45 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  &:not(:last-of-type) {
+    margin-bottom: 3em;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1em;
+    svg {
+      margin-right: 0.5em;
+    }
+  }
+  .section-body {
+    display: flex;
+    justify-content: center;
+
+    &.input-group {
+      input {
+        border: none;
+        border-bottom-left-radius: 5px;
+        border-top-left-radius: 5px;
+        padding: 0.4rem 1rem;
+        color: rgba(255, 255, 255, 0.699);
+        background-color: #373737;
+      }
+      button {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+
+    .button-group {
+      display: inline-flex;
+      gap: 1.5em;
+      button {
+        &.selected {
+          border-color: #d68c02;
+        }
+      }
+    }
+  }
+}

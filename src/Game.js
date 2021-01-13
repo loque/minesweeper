@@ -1,28 +1,20 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import { useGame } from "./lib/useGame";
 import { useConfig } from "./lib/config";
-import { msToMS } from "./lib/time";
-import { config } from "process";
 
-function ElapsedTime({ startTime, run }) {
-  const [elapsedTime, setElapsedTime] = useState("00:00");
-  useEffect(() => {
-    let intervalId;
-    if (run) {
-      intervalId = setInterval(() => {
-        setElapsedTime(msToMS(new Date() - startTime));
-      }, 300);
-    }
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [startTime, run]);
-  return <div>Elapsed time {elapsedTime}</div>;
-}
+import {
+  RiFlag2Fill as FlagIcon,
+  RiFocus3Fill as MineIcon,
+  RiRefreshLine as ReloadIcon,
+  RiMedalFill as MedalIcon,
+  RiEmotionFill as HappyIcon,
+  RiEmotionUnhappyFill as SadIcon,
+} from "react-icons/ri";
+
+import Header from "./components/Header";
+import StatusBar from "./components/StatusBar";
 
 export default function Game() {
   const location = useLocation();
@@ -62,56 +54,47 @@ export default function Game() {
     };
   }
   return (
-    <>
-      <h1>Game</h1>
-      <div>
-        <Link to="/setup">Setup</Link>
-      </div>
-      <div>
-        {game.state} - {game.result}
-      </div>
-      <div>Placed flags: {game.placedFlags}</div>
-      <div>Name: {config.name}</div>
-      <ElapsedTime
-        startTime={game.startDateTime}
-        run={game.state === "STARTED"}
-      />
-      <div>Current level: {game.difficulty}</div>
-      <div className="board">
-        {game.board.map((row, rowIdx) => {
-          return (
-            <div className="board-row" key={rowIdx}>
-              {row.map((tile) => (
-                <div
-                  className={`board-tile ${tile.state.toLowerCase()} ${
-                    tile.hasMine ? "hasMine" : ""
-                  }`}
-                  key={tile.index}
-                  onClick={tileLeftClickHandler(tile)}
-                  onContextMenu={tileRightClickHandler(tile)}
-                >
-                  {tile.adjMines !== null &&
-                    tile.adjMines !== 0 &&
-                    tile.adjMines}
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-      {game.state === "ENDED" && (
-        <div>
-          <div>
-            <Link to="/game">Play again</Link>
-          </div>
-          <div>
-            <Link to="/results">Results</Link>
-          </div>
+    <div className="view">
+      <div className="container">
+        <Header />
+        <StatusBar game={game} />
+
+        <div className={`board ${game.state === "ENDED" && "disabled"}`}>
+          {game.board.map((row, rowIdx) => {
+            const tileSize = `min(${Math.floor(100 / row.length)}vw, 3rem)`;
+            return (
+              <div className="board-row" key={rowIdx}>
+                {row.map((tile) => {
+                  const value = tile.adjMines || 0;
+                  return (
+                    <div
+                      key={tile.index}
+                      className={`board-tile ${tile.state.toLowerCase()} ${
+                        tile.hasMine && "hasMine"
+                      } ${game.state === "ENDED" && "disabled"} ${
+                        color[Math.min(value, color.length - 1)]
+                      } ${value === 0 && "empty"}`}
+                      style={{ width: tileSize, height: tileSize }}
+                      onClick={tileLeftClickHandler(tile)}
+                      onContextMenu={tileRightClickHandler(tile)}
+                    >
+                      {!!value && value}
+                      {tile.state === "FLAGGED" && <FlagIcon className="red" />}
+                      {tile.state === "SHOWN" && tile.hasMine && <MineIcon />}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
-      )}
-    </>
+        {game.state === "ENDED" && <EndGame result={game.result} />}
+      </div>
+    </div>
   );
 }
+
+const color = ["grey", "blue", "green", "red", "dark-blue"];
 
 function buildResult(game, config) {
   return {
@@ -122,4 +105,39 @@ function buildResult(game, config) {
     result: game.result,
     name: config.name,
   };
+}
+
+function EndGame({ result }) {
+  const autofocus = useRef();
+
+  useEffect(() => {
+    if (autofocus.current) autofocus.current.focus();
+  }, [autofocus]);
+
+  return (
+    <div className="endgame">
+      <div className="endgame-modal">
+        {result === "WON" && (
+          <div className="endgame-result icon-text">
+            <HappyIcon className="yellow" /> You won!
+          </div>
+        )}
+        {result === "LOST" && (
+          <div className="endgame-result icon-text">
+            <SadIcon className="red" /> You Lost!
+          </div>
+        )}
+        <div className="endgame-actions">
+          <Link ref={autofocus} className="button icon-text" to="/game">
+            <ReloadIcon />
+            Play again
+          </Link>
+          <Link to="/results" className="button icon-text">
+            <MedalIcon />
+            Results
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }

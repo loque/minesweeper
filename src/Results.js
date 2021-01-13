@@ -1,41 +1,95 @@
-import { Link } from "react-router-dom";
+import "./Results.scss";
 import { useConfig } from "./lib/config";
+import Header from "./components/Header";
+
+import {
+  RiUser3Fill as UserIcon,
+  RiMedalFill as MedalIcon,
+  RiFlashlightFill as DifficultyIcon,
+  RiEmotionFill as HappyIcon,
+  RiEmotionUnhappyFill as SadIcon,
+  RiTimerFill as TimeIcon,
+  RiPlayMiniFill as PlayIcon,
+  RiStopMiniFill as StopIcon,
+} from "react-icons/ri";
 
 export default function Results() {
   const config = useConfig();
   return (
-    <>
-      <h1>Results</h1>
-      <table>
-        <thead>
-          <tr>
-            <td>Start Time</td>
-            <td>End Time</td>
-            <td>Difficulty</td>
-            <td>Game Time</td>
-            <td>Result</td>
-            <td>User</td>
-          </tr>
-        </thead>
-        <tbody>
-          {config.results.map((res, resIdx) => {
-            return (
-              <tr key={resIdx}>
-                <td>{res.startTime}</td>
-                <td>{res.endTime}</td>
-                <td>{res.difficulty}</td>
-                <td>{msToMS(res.gameTime)}</td>
-                <td>{res.result}</td>
-                <td>{res.name}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <div>
-        <Link to="/game">Play again</Link>
+    <div className="view">
+      <div className="container">
+        <Header
+          title={
+            <h1 className="results-title">
+              <MedalIcon />
+              Top 10
+            </h1>
+          }
+          setupBtn={false}
+          playAgainBtn={true}
+        />
+
+        <table className="results-table">
+          <thead>
+            <tr>
+              <td title="Time">
+                <span>
+                  <TimeIcon />
+                  <span>Start/End</span>
+                </span>
+              </td>
+              <td title="Time" className="regular-width">
+                <span>
+                  <TimeIcon />
+                  <span>Game</span>
+                </span>
+              </td>
+              <td title="Difficulty" className="regular-width">
+                <DifficultyIcon />
+              </td>
+              <td title="Result" className="regular-width">
+                <MedalIcon />
+              </td>
+              <td title="Username" className="regular-width">
+                <UserIcon />
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {config.results.slice(0, 10).map((res, resIdx) => {
+              return (
+                <tr key={resIdx}>
+                  <td>
+                    <div className="time">
+                      <PlayIcon /> {res.startTime}
+                    </div>
+                    <div className="time">
+                      <StopIcon /> {res.endTime}
+                    </div>
+                  </td>
+                  <td>
+                    <div>{msToMS(res.gameTime)}</div>
+                  </td>
+                  <td>
+                    {/* <div>Difficulty</div> */}
+                    <div>{res.difficulty}</div>
+                  </td>
+                  <td>
+                    <div className="center result">
+                      {res.result === "WON" && <HappyIcon className="yellow" />}
+                      {res.result === "LOST" && <SadIcon className="red" />}
+                    </div>
+                  </td>
+                  <td>
+                    <div>{res.name}</div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </>
+    </div>
   );
 }
 
