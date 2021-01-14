@@ -16,16 +16,22 @@ import {
 import Header from "./components/Header";
 import StatusBar from "./components/StatusBar";
 
+const tileMargin = 1.5;
+
 export default function Game() {
+  const config = useConfig();
+
   const location = useLocation();
   const prevLocationKey = useRef(location.key);
-  const config = useConfig();
+
   const game = useGame(config.difficulty);
   const prevGameState = useRef(game.state);
-  const board = useRef();
-  const [boardWidth, setBoardWidth] = useState(0);
-  const [tileUnderMouse, setTileUnderMouse] = useState();
-  const [inspectTile, setInspectTile] = useState(false);
+
+  const boardRef = useRef();
+  const [tileSize, setTileSize] = useState(0);
+  const [tileUnderMouse, setTileUnderMouse] = useState(null);
+
+  const [inspectTileOn, setInspectTileOn] = useState(false);
   const inspectingTile = useRef("");
 
   useEffect(() => {
@@ -46,93 +52,105 @@ export default function Game() {
   }, [prevGameState, game.state, config, result]);
 
   useEffect(() => {
+    const board = boardRef.current;
+
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        setBoardWidth(entry.contentRect.width);
+        const board = entry.target;
+        const colsCount = board.children[0].children.length;
+        const { width } = board.getBoundingClientRect();
+        const nextTileSize = width / colsCount - tileMargin * 2;
+        setTileSize(nextTileSize);
+        // setBoardRect({ left, width, top, height });
       }
     });
-    const currBoard = board.current;
-    if (currBoard) {
-      resizeObserver.observe(currBoard);
-    }
-    return () => {
-      if (currBoard) {
-        resizeObserver.unobserve(currBoard);
-      }
-    };
-  }, [board]);
 
-  function tileOnMouseEnter(tile) {
-    return (e) => {
-      e.preventDefault();
-      setTileUnderMouse(tile);
-    };
-  }
+    if (board) resizeObserver.observe(board);
+    return () => board && resizeObserver.unobserve(board);
+  }, [boardRef]);
 
-  function tileOnMouseLeave(e) {
-    e.preventDefault();
-    setTileUnderMouse();
-    game.inspectAllTilesOff();
-  }
+  // useEffect(() => {
+  //   if (
+  //     inspectingTile.current !== tileUnderMouse &&
+  //     tileUnderMouse &&
+  //     inspectTileOn
+  //   ) {
+  //     inspectingTile.current = tileUnderMouse;
+  //     game.inspectAdjacentTiles(tileUnderMouse);
+  //   }
+  // }, [game, tileUnderMouse, inspectTileOn, inspectingTile]);
 
+  // We activate (mousedown) / deactivate (mouseup) underlying tile detection.
+  // Will work even if mouseup is fired outside the board.
+  // Also, we make the first detection on mousedown and remove detection state
+  // on mouseup.
   useEffect(() => {
-    if (
-      inspectingTile.current !== tileUnderMouse &&
-      tileUnderMouse &&
-      inspectTile
-    ) {
-      inspectingTile.current = tileUnderMouse;
-      game.inspectAdjacentTiles(tileUnderMouse);
-    }
-  }, [game, tileUnderMouse, inspectTile, inspectingTile]);
+    const detectUnderlyingTile = makeDetector(boardRef.current, tileSize);
 
-  function tileClickHandler(tile) {
-    return (e) => {
-      e.preventDefault();
-      if (e.button === 0) {
-        game.showTile(tile);
-      } else if (e.button === 1) {
-        setInspectTile(true);
-      }
-    };
-  }
-
-  function tileInspectingOff(tile) {
-    return (e) => {
-      e.preventDefault();
+    function activateDetection(e) {
       if (e.button === 1) {
-        setInspectTile(false);
-        game.inspectAllTilesOff();
+        setInspectTileOn(true);
+        detectUnderlyingTile(e);
+      }
+    }
+
+    function deactivateDetection(e) {
+      if (e.button === 1) {
+        setInspectTileOn(false);
+        setTileUnderMouse(null);
+      }
+    }
+
+    window.addEventListener("mousedown", activateDetection);
+    window.addEventListener("mouseup", deactivateDetection);
+    return () => {
+      window.removeEventListener("mousedown", activateDetection);
+      window.removeEventListener("mouseup", deactivateDetection);
+    };
+  }, [boardRef, tileSize]);
+
+  // Detect underlying tile on mousemove only when underlying detection is
+  // active. See previous `useEffect`.
+  useEffect(() => {
+    const board = boardRef.current;
+    const shouldListen = inspectTileOn && board && tileSize;
+    const detectUnderlyingTile = makeDetector(board, tileSize);
+
+    shouldListen && window.addEventListener("mousemove", detectUnderlyingTile);
+    return () => {
+      shouldListen &&
+        window.removeEventListener("mousemove", detectUnderlyingTile);
+    };
+  }, [inspectTileOn, boardRef, tileSize]);
+
+  function makeDetector(board, tileSize) {
+    return (e) => {
+      const { left, top } = board.getBoundingClientRect();
+      const mouseX = e.pageX - left; // relative to the board
+      const mouseY = e.pageY - top; // relative to the board
+      if (mouseX < 0 || mouseY < 0) {
+        setTileUnderMouse(null);
+      } else {
+        const currTileSize = tileSize + tileMargin * 2;
+        const colIdx = Math.floor(mouseX / currTileSize);
+        const rowIdx = Math.floor(mouseY / currTileSize);
+        setTileUnderMouse({ rowIdx, colIdx });
       }
     };
   }
 
-  function tileLongPressHandler(tile) {
+  function tileClick(tile) {
+    return (e) => {
+      e.preventDefault();
+      if (e.button === 0) game.showTile(tile);
+    };
+  }
+
+  function tileContextMenu(tile) {
     return (e) => {
       e.preventDefault();
       game.flagTile(tile);
     };
-  }
-
-  let tileMargin = 0;
-  let tileSize = 0;
-  if (game.board && boardWidth) {
-    switch (game.difficulty) {
-      case "EASY":
-        tileMargin = 1.5;
-        break;
-      case "MEDIUM":
-        tileMargin = 1;
-        break;
-      case "HARD":
-        tileMargin = 0.5;
-        break;
-      default:
-        break;
-    }
-
-    const cols = game.board[0].length;
-    tileSize = boardWidth / cols - tileMargin * 2;
   }
 
   return (
@@ -142,14 +160,14 @@ export default function Game() {
         <StatusBar game={game} />
 
         <div
-          ref={board}
+          ref={boardRef}
           className={`board ${game.state === "ENDED" && "disabled"}`}
         >
           {game.board &&
             game.board.map((row, rowIdx) => {
               return (
                 <div className="board-row" key={rowIdx}>
-                  {row.map((tile) => {
+                  {row.map((tile, colIdx) => {
                     const value = tile.adjMines || 0;
                     return (
                       <div
@@ -160,6 +178,10 @@ export default function Game() {
                           color[Math.min(value, color.length - 1)]
                         } ${value === 0 && "empty"} ${
                           tile.inspecting && "inspecting"
+                        } ${
+                          tileUnderMouse?.rowIdx === rowIdx &&
+                          tileUnderMouse?.colIdx === colIdx &&
+                          "test"
                         }`}
                         style={{
                           width: tileSize + "px",
@@ -167,11 +189,8 @@ export default function Game() {
                           margin: tileMargin + "px",
                           fontSize: tileMargin + "em",
                         }}
-                        onMouseEnter={tileOnMouseEnter(tile)}
-                        onMouseLeave={tileOnMouseLeave}
-                        onMouseDown={tileClickHandler(tile)}
-                        onMouseUp={tileInspectingOff(tile)}
-                        onContextMenu={tileLongPressHandler(tile)}
+                        onClick={tileClick(tile)}
+                        onContextMenu={tileContextMenu(tile)}
                       >
                         <div className="board-tile-content">
                           {!!value && value}
