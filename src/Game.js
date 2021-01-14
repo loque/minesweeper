@@ -109,8 +109,8 @@ export default function Game() {
     };
   }, [boardRef, tileSize]);
 
-  // Detect underlying tile on mousemove only when underlying detection is
-  // active. See previous `useEffect`.
+  // Detect underlying tile on mousemove only when underlying detection
+  // is active. See previous `useEffect`.
   useEffect(() => {
     const board = boardRef.current;
     const shouldListen = inspectTileOn && board && tileSize;
@@ -123,6 +123,8 @@ export default function Game() {
     };
   }, [inspectTileOn, boardRef, tileSize]);
 
+  // Calculate the corresponding `rowIdx` and `colIdx` of the tile under
+  // the mouse.
   function makeDetector(board, tileSize) {
     return (e) => {
       const { left, top } = board.getBoundingClientRect();
