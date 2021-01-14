@@ -152,7 +152,7 @@ class Tile {
   constructor(replace: TileOptions = {}) {
     for (const prop in replace) {
       if (this.hasOwnProperty(prop)) {
-        // @ts-ignore FIXME:
+        // @ts-ignore FIXME: maybe?
         this[prop] = replace[prop];
       }
     }
@@ -202,12 +202,14 @@ function placeMines(board: Board, config: Config, exceptionAbsIdx: number) {
   }
 }
 
+// fill the `adjacent` prop for every tile in the board
 function setAdjacentForAll(board: Board) {
   for (const tile of board.list) {
     setAdjacentTiles(board, tile);
   }
 }
 
+// Set the `adjacent` prop with an array containing references for every adjacent tile
 function setAdjacentTiles(board: Board, tile: Tile) {
   const { matrix } = board;
   const { rowIdx, colIdx } = tile;
@@ -223,6 +225,7 @@ function setAdjacentTiles(board: Board, tile: Tile) {
   tile.adjacent[7] = matrix[rowIdx + 1]?.[colIdx + 1] || null;
 }
 
+// Set the value with the count of adjacent tiles
 function placeValueOfTiles(board: Board) {
   for (const tile of board.list) {
     tile.value = tile.adjacent.filter((t) => t?.hasMine).length;
