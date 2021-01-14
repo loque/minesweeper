@@ -128,8 +128,9 @@ export default function Game() {
   function makeDetector(board, tileSize) {
     return (e) => {
       const { left, top } = board.getBoundingClientRect();
-      const mouseX = e.pageX - left; // relative to the board
-      const mouseY = e.pageY - top; // relative to the board
+      // Calculate the mouse position relative to the board
+      const mouseX = e.pageX - left;
+      const mouseY = e.pageY - top;
       if (mouseX < 0 || mouseY < 0) {
         setTileUnderMouse(null);
       } else {
@@ -155,6 +156,7 @@ export default function Game() {
     };
   }
 
+  const tilesCNs = ["board-tile", [game.state === "ENDED", "disabled"]];
   return (
     <div className="view">
       <div className="container">
@@ -163,7 +165,7 @@ export default function Game() {
 
         <div
           ref={boardRef}
-          className={`board ${game.state === "ENDED" && "disabled"}`}
+          {...bCN("board", [game.state === "ENDED", "disabled"])}
         >
           {game.board &&
             game.board.map((row, rowIdx) => {
@@ -171,20 +173,24 @@ export default function Game() {
                 <div className="board-row" key={rowIdx}>
                   {row.map((tile, colIdx) => {
                     const value = tile.adjMines || 0;
+                    const tileCNs = [
+                      ...tilesCNs,
+                      tile.state.toLowerCase(),
+                      [tile.hasMine, "hasMine"],
+                      color[Math.min(value, color.length - 1)],
+                      [value === 0, "empty"],
+                      [tile.inspecting, "inspecting"],
+                      [
+                        tileUnderMouse?.rowIdx === rowIdx,
+                        tileUnderMouse?.colIdx === colIdx,
+                        "test",
+                      ],
+                    ];
+
                     return (
                       <div
                         key={tile.index}
-                        className={`board-tile ${tile.state.toLowerCase()} ${
-                          tile.hasMine && "hasMine"
-                        } ${game.state === "ENDED" && "disabled"} ${
-                          color[Math.min(value, color.length - 1)]
-                        } ${value === 0 && "empty"} ${
-                          tile.inspecting && "inspecting"
-                        } ${
-                          tileUnderMouse?.rowIdx === rowIdx &&
-                          tileUnderMouse?.colIdx === colIdx &&
-                          "test"
-                        }`}
+                        {...bCN(tileCNs)}
                         style={{
                           width: tileSize + "px",
                           height: tileSize + "px",
@@ -217,6 +223,23 @@ export default function Game() {
 }
 
 const color = ["grey", "blue", "green", "red", "dark-blue"];
+
+// Build classNames
+function bCN(...cNs) {
+  if (cNs.length === 1 && Array.isArray(cNs[0])) cNs = cNs[0];
+  const className = cNs
+    .map((cn) => {
+      if (Array.isArray(cn)) {
+        const value = cn.pop();
+        if (!cn.every((cond) => cond === true)) return false;
+        return value;
+      }
+      return cn;
+    })
+    .filter((cn) => !!cn)
+    .join(" ");
+  return { className };
+}
 
 function buildResult(game, config) {
   return {
