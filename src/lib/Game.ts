@@ -179,16 +179,11 @@ export default class Game {
     return matrix;
   }
 
-  inspectAdjacentTiles(tile: Tile) {
+  setSeenTileAndAdj(tile: Tile, state: boolean) {
     if (tile.state !== TileState.SHOWN) return;
+    this.#board[tile.index].seen = state;
     for (const adjTile of this.getAdjacentTiles(tile)) {
-      this.#board[adjTile.index].inspecting = true;
-    }
-  }
-
-  inspectAllTilesOff() {
-    for (const tile of this.#board) {
-      tile.inspecting = false;
+      this.#board[adjTile.index].seen = state;
     }
   }
 

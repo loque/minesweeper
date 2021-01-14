@@ -24,22 +24,12 @@ export function useGame(difficulty) {
     }
   }
 
-  function inspectAdjacentTiles(tile) {
+  function setSeenTileAndAdj(tile, state) {
     if (game.current) {
-      game.current.inspectAdjacentTiles(tile);
+      game.current.setSeenTileAndAdj(tile, state);
       setProps(extractProps(game.current));
     }
   }
-
-  // const inspectAdjacentTiles = useCallback(
-  //   (tile) => {
-  //     if (game.current) {
-  //       game.current.inspectAdjacentTiles(tile);
-  //       setProps(extractProps(game.current));
-  //     }
-  //   },
-  //   [game]
-  // );
 
   function inspectAllTilesOff() {
     if (game.current) {
@@ -60,7 +50,7 @@ export function useGame(difficulty) {
     flagTile,
     showTile,
     reset,
-    inspectAdjacentTiles,
+    setSeenTileAndAdj,
     inspectAllTilesOff,
   };
 }
@@ -70,7 +60,6 @@ function extractProps(game) {
     state,
     result,
     board,
-    formatMs,
     startDateTime,
     startTime,
     endTime,
@@ -82,7 +71,6 @@ function extractProps(game) {
     state,
     result,
     board,
-    formatMs,
     startDateTime,
     startTime,
     endTime,

@@ -30,9 +30,9 @@ export default function Game() {
   const boardRef = useRef();
   const [tileSize, setTileSize] = useState(0);
   const [tileUnderMouse, setTileUnderMouse] = useState(null);
+  const [seeTiles, setSeeTiles] = useState(false);
 
-  const [inspectTileOn, setInspectTileOn] = useState(false);
-  const inspectingTile = useRef("");
+  // const inspectingTile = useRef("");
 
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
@@ -51,6 +51,7 @@ export default function Game() {
     }
   }, [prevGameState, game.state, config, result]);
 
+  // TODO: add comments
   useEffect(() => {
     const board = boardRef.current;
 
@@ -61,24 +62,12 @@ export default function Game() {
         const { width } = board.getBoundingClientRect();
         const nextTileSize = width / colsCount - tileMargin * 2;
         setTileSize(nextTileSize);
-        // setBoardRect({ left, width, top, height });
       }
     });
 
     if (board) resizeObserver.observe(board);
     return () => board && resizeObserver.unobserve(board);
   }, [boardRef]);
-
-  // useEffect(() => {
-  //   if (
-  //     inspectingTile.current !== tileUnderMouse &&
-  //     tileUnderMouse &&
-  //     inspectTileOn
-  //   ) {
-  //     inspectingTile.current = tileUnderMouse;
-  //     game.inspectAdjacentTiles(tileUnderMouse);
-  //   }
-  // }, [game, tileUnderMouse, inspectTileOn, inspectingTile]);
 
   // We activate (mousedown) / deactivate (mouseup) underlying tile detection.
   // Will work even if mouseup is fired outside the board.
@@ -89,14 +78,14 @@ export default function Game() {
 
     function activateDetection(e) {
       if (e.button === 1) {
-        setInspectTileOn(true);
+        setSeeTiles(true);
         detectUnderlyingTile(e);
       }
     }
 
     function deactivateDetection(e) {
       if (e.button === 1) {
-        setInspectTileOn(false);
+        setSeeTiles(false);
         setTileUnderMouse(null);
       }
     }
@@ -113,7 +102,7 @@ export default function Game() {
   // is active. See previous `useEffect`.
   useEffect(() => {
     const board = boardRef.current;
-    const shouldListen = inspectTileOn && board && tileSize;
+    const shouldListen = seeTiles && board && tileSize;
     const detectUnderlyingTile = makeDetector(board, tileSize);
 
     shouldListen && window.addEventListener("mousemove", detectUnderlyingTile);
@@ -121,7 +110,7 @@ export default function Game() {
       shouldListen &&
         window.removeEventListener("mousemove", detectUnderlyingTile);
     };
-  }, [inspectTileOn, boardRef, tileSize]);
+  }, [seeTiles, boardRef, tileSize]);
 
   // Calculate the corresponding `rowIdx` and `colIdx` of the tile under
   // the mouse.
@@ -141,6 +130,14 @@ export default function Game() {
       }
     };
   }
+
+  useEffect(() => {
+    if (tileUnderMouse) {
+      game.setSeenTileAndAdj(tile, true);
+    } else {
+      game.setSeenTileAndAdj(tile, false);
+    }
+  }, [game, tileUnderMouse]);
 
   function tileClick(tile) {
     return (e) => {
