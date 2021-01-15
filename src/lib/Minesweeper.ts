@@ -256,26 +256,13 @@ function setAdjacentForAll(board: Board) {
 
 /**
  * Set `tile.adjacent` with an array containing references for every adjacent
- * tile or null in place when there is none.
+ * tile.
  * Note: This should be a private method, public methods should **not** accept a
  * `Tile` directly but the `absIdx` to it.
- *
  */
 function setAdjacentForOne(board: Board, tile: Tile) {
   const { matrix } = board;
   const { rowIdx, colIdx } = tile;
-
-  // // TL,TC,TR
-  // tile.adjacent[0] = matrix[rowIdx - 1]?.[colIdx - 1] || null;
-  // tile.adjacent[1] = matrix[rowIdx - 1]?.[colIdx] || null;
-  // tile.adjacent[2] = matrix[rowIdx - 1]?.[colIdx + 1] || null;
-  // // CL,CR
-  // tile.adjacent[3] = matrix[rowIdx][colIdx - 1] || null;
-  // tile.adjacent[4] = matrix[rowIdx][colIdx + 1] || null;
-  // // BL,BC,BR
-  // tile.adjacent[5] = matrix[rowIdx + 1]?.[colIdx - 1] || null;
-  // tile.adjacent[6] = matrix[rowIdx + 1]?.[colIdx] || null;
-  // tile.adjacent[7] = matrix[rowIdx + 1]?.[colIdx + 1] || null;
 
   for (let ri = -1; ri < 2; ri++) {
     for (let ci = -1; ci < 2; ci++) {
