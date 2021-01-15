@@ -33,6 +33,13 @@ function pad(str: any, length: number = 3) {
   return str;
 }
 
+function logAdj(rowDiff: number, colDiff: number) {
+  console.log(
+    board.matrix[rowDiff][colDiff].absIdx,
+    board.matrix[rowDiff][colDiff].adjacent.map((t) => t.absIdx)
+  );
+}
+
 // from: https://stackoverflow.com/a/2450976/3622350
 function shuffle<T>(array: T[]): T[] {
   let currIdx = array.length;
@@ -262,17 +269,15 @@ function setAdjacentForAll(board: Board) {
  */
 function setAdjacentForOne(board: Board, tile: Tile) {
   const { matrix } = board;
-  const { rowIdx, colIdx } = tile;
+  const { rowIdx: targetRI, colIdx: targetCI } = tile;
 
-  for (let ri = -1; ri < 2; ri++) {
-    for (let ci = -1; ci < 2; ci++) {
-      if (ri === 0 && ci === 0) continue;
-      let currRowIdx = rowIdx + ri;
-      let currColIdx = colIdx + ci;
-      const adj = matrix[currRowIdx]?.[currColIdx];
-      if (adj) {
-        tile.adjacent.push(adj);
-      }
+  for (let rowDiff = -1; rowDiff < 2; rowDiff++) {
+    for (let colDiff = -1; colDiff < 2; colDiff++) {
+      if (rowDiff === 0 && colDiff === 0) continue;
+      const currRI = targetRI + rowDiff;
+      const currCI = targetCI + colDiff;
+      const adj = matrix[currRI]?.[currCI];
+      if (adj) tile.adjacent.push(adj);
     }
   }
 }
@@ -291,8 +296,8 @@ function getTileValue(ctx: TileContext) {
 // TESTS
 
 const config: Config = {
-  rows: 3,
-  cols: 4,
+  rows: 20,
+  cols: 10,
   mines: 4,
 };
 
@@ -300,13 +305,6 @@ const board = createEmptyBoard(config);
 placeMines(board, config, 2);
 setAdjacentForAll(board);
 setValueForAll(board);
-log({ revealAll: true });
-
-console.log(
-  board.matrix[0][0].absIdx,
-  board.matrix[0][0].adjacent.map((t) => t.absIdx)
-);
-console.log(
-  board.matrix[1][1].absIdx,
-  board.matrix[1][1].adjacent.map((t) => t.absIdx)
-);
+log({ displayIndexes: true, revealAll: true });
+logAdj(0, 0);
+logAdj(6, 9);
