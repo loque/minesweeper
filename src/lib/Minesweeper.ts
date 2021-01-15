@@ -59,7 +59,16 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-const minesweeperMachine = Machine({
+interface MinesweeperContext {
+  config: BoardConfig;
+  nonMineTilesShown: number;
+  placedFlags: number;
+  startDateTime: Date | null;
+  endDateTime: Date | null;
+  board: Board;
+}
+
+const minesweeperMachine = Machine<MinesweeperContext>({
   id: "minesweeper",
   initial: "idle",
   context: {
@@ -68,7 +77,7 @@ const minesweeperMachine = Machine({
     placedFlags: 0,
     startDateTime: null,
     endDateTime: null,
-    board: [],
+    board: { list: [], matrix: [] },
   },
   states: {
     idle: {
@@ -125,7 +134,7 @@ const minesweeperMachine = Machine({
   },
 });
 
-interface Config {
+interface BoardConfig {
   rows: number;
   cols: number;
   mines: number;
@@ -219,7 +228,7 @@ interface Board {
   matrix: BoardMatrix;
 }
 
-function createEmptyBoard(config: Config): Board {
+function createEmptyBoard(config: BoardConfig): Board {
   const list: BoardList = [];
   const matrix: BoardMatrix = [];
   let absIdx = 0;
@@ -236,7 +245,7 @@ function createEmptyBoard(config: Config): Board {
   return { list, matrix };
 }
 
-function placeMines(board: Board, config: Config, exceptedAbsIdx: number) {
+function placeMines(board: Board, config: BoardConfig, exceptedAbsIdx: number) {
   const { list } = board;
   // Select indexes of all tiles but `exceptedAbsIdx`
   const availableIndexes = shuffle(
@@ -295,7 +304,7 @@ function getTileValue(ctx: TileContext) {
 
 // TESTS
 
-const config: Config = {
+const config: BoardConfig = {
   rows: 20,
   cols: 10,
   mines: 4,
