@@ -106,10 +106,10 @@ const minesweeperMachine = Machine({
         REVEAL_TILE: [],
         // Reveal the tile
 
-        // If tile has a mine => ended.lost
+        // If tile.hasMine => ended.lost
 
         /*
-					If the tile's value is > 0
+					If tile.value is > 0
 						nonMineTilesShown
 					*/
       },
@@ -184,49 +184,56 @@ function createEmptyBoard(config: Config): Board {
   return { list, matrix };
 }
 
-function placeMines(board: Board, config: Config, exceptionAbsIdx: number) {
+function placeMines(board: Board, config: Config, exceptedAbsIdx: number) {
   const { list } = board;
-  // Select indexes of all tiles but `exceptionAbsIdx`
+  // Select indexes of all tiles but `exceptedAbsIdx`
   const availableIndexes = shuffle(
     list
-      .filter((tile) => tile.absIdx !== exceptionAbsIdx)
+      .filter((tile) => tile.absIdx !== exceptedAbsIdx)
       .map((tile) => tile.absIdx)
   );
 
-  // Store indexes of all tiles with mines
+  // Store indexes of all tiles with mines.
   const minesIndexes = availableIndexes.slice(0, config.mines);
 
-  // Place mines on randomly selected tiles (excluding `exceptionAbsIdx`)
+  // Place mines on randomly selected tiles (excluding `exceptedAbsIdx`)
   for (const absIdx of minesIndexes) {
     list[absIdx].hasMine = true;
   }
 }
 
-// fill the `adjacent` prop for every tile in the board
+// Fill the `adjacent` prop for every tile in the board
 function setAdjacentForAll(board: Board) {
   for (const tile of board.list) {
-    setAdjacentTiles(board, tile);
+    setAdjacentForOne(board, tile);
   }
 }
 
-// Set the `adjacent` prop with an array containing references for every adjacent tile
-function setAdjacentTiles(board: Board, tile: Tile) {
+/**
+ * Set `tile.adjacent` with an array containing references for every adjacent
+ * tile or null in place when there is none.
+ * Note: This should be a private method, public methods should **not** accept a
+ * `Tile` directly but the `absIdx` to it.
+ */
+function setAdjacentForOne(board: Board, tile: Tile) {
   const { matrix } = board;
   const { rowIdx, colIdx } = tile;
 
-  // The order is TL,TC,TR,CL,CR,BL,BC,BR
+  // TL,TC,TR
   tile.adjacent[0] = matrix[rowIdx - 1]?.[colIdx - 1] || null;
   tile.adjacent[1] = matrix[rowIdx - 1]?.[colIdx] || null;
   tile.adjacent[2] = matrix[rowIdx - 1]?.[colIdx + 1] || null;
+  // CL,CR
   tile.adjacent[3] = matrix[rowIdx][colIdx - 1] || null;
   tile.adjacent[4] = matrix[rowIdx][colIdx + 1] || null;
+  // BL,BC,BR
   tile.adjacent[5] = matrix[rowIdx + 1]?.[colIdx - 1] || null;
   tile.adjacent[6] = matrix[rowIdx + 1]?.[colIdx] || null;
   tile.adjacent[7] = matrix[rowIdx + 1]?.[colIdx + 1] || null;
 }
 
-// Set the value with the count of adjacent tiles
-function placeValueOfTiles(board: Board) {
+// Set `tile.value` with the count of adjacent tiles
+function setValueForAll(board: Board) {
   for (const tile of board.list) {
     tile.value = tile.adjacent.filter((t) => t?.hasMine).length;
   }
@@ -235,13 +242,13 @@ function placeValueOfTiles(board: Board) {
 // TESTS
 
 const config: Config = {
-  rows: 4,
-  cols: 3,
-  mines: 3,
+  rows: 20,
+  cols: 10,
+  mines: 40,
 };
 
 const board = createEmptyBoard(config);
 placeMines(board, config, 2);
 setAdjacentForAll(board);
-placeValueOfTiles(board);
+setValueForAll(board);
 log({ revealAll: true });
