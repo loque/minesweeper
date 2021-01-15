@@ -279,9 +279,9 @@ function setAdjacentForOne(board: Board, tile: Tile) {
 
   for (let ri = -1; ri < 2; ri++) {
     for (let ci = -1; ci < 2; ci++) {
+      if (ri === 0 && ci === 0) continue;
       let currRowIdx = rowIdx + ri;
       let currColIdx = colIdx + ci;
-      if (currRowIdx === 0 && currColIdx === 0) continue;
       const adj = matrix[currRowIdx]?.[currColIdx];
       if (adj) {
         tile.adjacent.push(adj);
@@ -304,9 +304,9 @@ function getTileValue(ctx: TileContext) {
 // TESTS
 
 const config: Config = {
-  rows: 6,
-  cols: 6,
-  mines: 10,
+  rows: 3,
+  cols: 4,
+  mines: 4,
 };
 
 const board = createEmptyBoard(config);
@@ -314,3 +314,12 @@ placeMines(board, config, 2);
 setAdjacentForAll(board);
 setValueForAll(board);
 log({ revealAll: true });
+
+console.log(
+  board.matrix[0][0].absIdx,
+  board.matrix[0][0].adjacent.map((t) => t.absIdx)
+);
+console.log(
+  board.matrix[1][1].absIdx,
+  board.matrix[1][1].adjacent.map((t) => t.absIdx)
+);
