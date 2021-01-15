@@ -91,27 +91,30 @@ const minesweeperMachine = Machine({
         REVEAL_TILE: "playing",
         // Place mines
 
-        // Calculate value of each tile? TODO: find an efficient way to do this
-        // Make calculation async (web worker)? So that we can show a loading
-        // state if it takes too long?
-        // Maybe tiles should hold a reference to their adjacent tiles?
+        // Set `adjacent` for every Tile
 
-        // Set startDateTime
+        // Calculate `value` of every Tile
 
-        // Reveal tile + logic below
+        // Make these calculation async (web worker)? So that we can show a
+        // loading state if it takes too long?
+
+        // Set `startDateTime`
+
+        // Reveal the Tile + logic below
       },
     },
     playing: {
       on: {
         REVEAL_TILE: [],
-        // Reveal the tile
+        // Reveal the Tile
 
         // If tile.hasMine => ended.lost
 
-        /*
-					If tile.value is > 0
-						nonMineTilesShown
-					*/
+        // `nonMineTilesShown`++
+
+        // If `nonMineTilesShown` === `nonMineTiles` => ended.won
+
+        // If `tile.value` === 0 then reveal adjacent Tiles recursively
       },
     },
     ended: {
@@ -214,6 +217,9 @@ function setAdjacentForAll(board: Board) {
  * tile or null in place when there is none.
  * Note: This should be a private method, public methods should **not** accept a
  * `Tile` directly but the `absIdx` to it.
+ *
+ * TODO: how could this be done with an array instead of a matrix?
+ * TODO: can we store absIdxs instead of references?
  */
 function setAdjacentForOne(board: Board, tile: Tile) {
   const { matrix } = board;
@@ -242,9 +248,9 @@ function setValueForAll(board: Board) {
 // TESTS
 
 const config: Config = {
-  rows: 20,
-  cols: 10,
-  mines: 40,
+  rows: 6,
+  cols: 6,
+  mines: 10,
 };
 
 const board = createEmptyBoard(config);
