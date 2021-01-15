@@ -82,29 +82,35 @@ const minesweeperMachine = Machine({
     idle: {
       on: {
         CONFIGURE: "ready",
-        // Create an empty board
+        // Create an empty board spawning Tiles as actors (machines)?
       },
     },
     // Configured
     ready: {
       on: {
         REVEAL_TILE: "playing",
-        // Place mines
+        // Place mines ensuring that the selected Tile does *not* have a mine!
 
-        // Set `adjacent` for every Tile
+        // Set `adjacent` for every Tile (will make the `value` calculation
+        // below very easy)
 
-        // Calculate `value` of every Tile
+        // Calculate the `value` (count of adjacent mines) of every Tile
 
-        // Make these calculation async (web worker)? So that we can show a
+        // Make these calculations async (web worker)? So that we can show a
         // loading state if it takes too long?
 
         // Set `startDateTime`
 
-        // Reveal the Tile + logic below
+        // Go to `playing` sending the received `absIdx` so that it can be
+        // revealed
       },
     },
     playing: {
       on: {
+        "": {},
+        // On entry, go to REVEAL_TILE with the `absIdx` received in the
+        // previous state
+
         REVEAL_TILE: [],
         // Reveal the Tile
 
@@ -142,7 +148,53 @@ interface TileOptions {
   colIdx?: number;
   adjacent?: (Tile | null)[];
 }
+interface TileContext {
+  hasMine: boolean;
+  value: number;
+  absIdx: number;
+  rowIdx: number;
+  colIdx: number;
+  adjacent: (Tile | null)[];
+}
 
+const tileMachine = Machine<TileContext>({
+  id: "tile",
+  initial: "hidden",
+  context: {
+    hasMine: false, // TODO: should this be a state?
+    value: 0,
+    absIdx: 0,
+    rowIdx: 0,
+    colIdx: 0,
+    adjacent: [],
+  },
+  states: {
+    hidden: {
+      initial: "unseen",
+      states: {
+        unseen: {
+          on: {
+            SEE: "seen",
+            FLAG: "flagged",
+          },
+        },
+        seen: { on: { UNSEE: "unseen" } },
+      },
+    },
+    flagged: {
+      on: {
+        UNFLAG: "hidden",
+      },
+    },
+    revealed: {
+      type: "final",
+      // send value to parent
+      data: {
+        hasMine: (context: TileContext) => context.hasMine,
+      },
+    },
+  },
+});
 class Tile {
   state: string = "hidden";
   hasMine: boolean = false;
