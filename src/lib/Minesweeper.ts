@@ -33,21 +33,6 @@ function pad(str: any, length: number = 3) {
   return str;
 }
 
-function logAdjacents(tile: Tile) {
-  const { adjacent: adj } = tile;
-  console.log(
-    adj[0]?.absIdx || null,
-    adj[1]?.absIdx || null,
-    adj[2]?.absIdx || null
-  );
-  console.log(adj[3]?.absIdx || null, "T", adj[4]?.absIdx || null);
-  console.log(
-    adj[5]?.absIdx || null,
-    adj[6]?.absIdx || null,
-    adj[7]?.absIdx || null
-  );
-}
-
 // from: https://stackoverflow.com/a/2450976/3622350
 function shuffle<T>(array: T[]): T[] {
   let currIdx = array.length;
@@ -146,23 +131,21 @@ interface TileOptions {
   absIdx?: number;
   rowIdx?: number;
   colIdx?: number;
-  adjacent?: (Tile | null)[];
+  adjacent?: Tile[];
 }
 interface TileContext {
   hasMine: boolean;
-  value: number;
   absIdx: number;
   rowIdx: number;
   colIdx: number;
-  adjacent: (Tile | null)[];
+  adjacent: Tile[];
 }
 
 const tileMachine = Machine<TileContext>({
   id: "tile",
   initial: "hidden",
   context: {
-    hasMine: false, // TODO: should this be a state?
-    value: 0,
+    hasMine: false,
     absIdx: 0,
     rowIdx: 0,
     colIdx: 0,
@@ -188,10 +171,17 @@ const tileMachine = Machine<TileContext>({
     },
     revealed: {
       type: "final",
-      // send value to parent
+      // Send `value` and `hasMine` to parent
       data: {
         hasMine: (context: TileContext) => context.hasMine,
+        value: (context: TileContext) => getTileValue(context),
       },
+    },
+  },
+  on: {
+    INSPECT_ON: {
+      target: "see",
+      actions: [], // Also send `see` to every Tile in `adjacent`
     },
   },
 });
@@ -202,7 +192,7 @@ class Tile {
   absIdx: number = 0;
   rowIdx: number = 0;
   colIdx: number = 0;
-  adjacent: (Tile | null)[] = [];
+  adjacent: Tile[] = [];
 
   constructor(replace: TileOptions = {}) {
     for (const prop in replace) {
@@ -270,31 +260,45 @@ function setAdjacentForAll(board: Board) {
  * Note: This should be a private method, public methods should **not** accept a
  * `Tile` directly but the `absIdx` to it.
  *
- * TODO: how could this be done with an array instead of a matrix?
- * TODO: can we store absIdxs instead of references?
  */
 function setAdjacentForOne(board: Board, tile: Tile) {
   const { matrix } = board;
   const { rowIdx, colIdx } = tile;
 
-  // TL,TC,TR
-  tile.adjacent[0] = matrix[rowIdx - 1]?.[colIdx - 1] || null;
-  tile.adjacent[1] = matrix[rowIdx - 1]?.[colIdx] || null;
-  tile.adjacent[2] = matrix[rowIdx - 1]?.[colIdx + 1] || null;
-  // CL,CR
-  tile.adjacent[3] = matrix[rowIdx][colIdx - 1] || null;
-  tile.adjacent[4] = matrix[rowIdx][colIdx + 1] || null;
-  // BL,BC,BR
-  tile.adjacent[5] = matrix[rowIdx + 1]?.[colIdx - 1] || null;
-  tile.adjacent[6] = matrix[rowIdx + 1]?.[colIdx] || null;
-  tile.adjacent[7] = matrix[rowIdx + 1]?.[colIdx + 1] || null;
+  // // TL,TC,TR
+  // tile.adjacent[0] = matrix[rowIdx - 1]?.[colIdx - 1] || null;
+  // tile.adjacent[1] = matrix[rowIdx - 1]?.[colIdx] || null;
+  // tile.adjacent[2] = matrix[rowIdx - 1]?.[colIdx + 1] || null;
+  // // CL,CR
+  // tile.adjacent[3] = matrix[rowIdx][colIdx - 1] || null;
+  // tile.adjacent[4] = matrix[rowIdx][colIdx + 1] || null;
+  // // BL,BC,BR
+  // tile.adjacent[5] = matrix[rowIdx + 1]?.[colIdx - 1] || null;
+  // tile.adjacent[6] = matrix[rowIdx + 1]?.[colIdx] || null;
+  // tile.adjacent[7] = matrix[rowIdx + 1]?.[colIdx + 1] || null;
+
+  for (let ri = -1; ri < 2; ri++) {
+    for (let ci = -1; ci < 2; ci++) {
+      let currRowIdx = rowIdx + ri;
+      let currColIdx = colIdx + ci;
+      if (currRowIdx === 0 && currColIdx === 0) continue;
+      const adj = matrix[currRowIdx]?.[currColIdx];
+      if (adj) {
+        tile.adjacent.push(adj);
+      }
+    }
+  }
 }
 
 // Set `tile.value` with the count of adjacent tiles
 function setValueForAll(board: Board) {
   for (const tile of board.list) {
-    tile.value = tile.adjacent.filter((t) => t?.hasMine).length;
+    tile.value = tile.adjacent.filter((t) => t.hasMine).length;
   }
+}
+
+function getTileValue(ctx: TileContext) {
+  return ctx.adjacent.filter((t) => t.hasMine).length;
 }
 
 // TESTS
