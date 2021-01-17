@@ -1,6 +1,6 @@
 // import { Machine } from "xstate";
 import pkg from "xstate";
-const { Machine } = pkg;
+const { Machine, sendParent } = pkg;
 
 type LogOptions = {
   displayIndexes?: boolean;
@@ -66,6 +66,7 @@ interface MinesweeperContext {
   startDateTime: Date | null;
   endDateTime: Date | null;
   board: Board;
+  targetTile: number | null;
 }
 
 const minesweeperMachine = Machine<MinesweeperContext>({
@@ -78,6 +79,7 @@ const minesweeperMachine = Machine<MinesweeperContext>({
     startDateTime: null,
     endDateTime: null,
     board: { list: [], matrix: [] },
+    targetTile: null,
   },
   states: {
     idle: {
@@ -89,43 +91,101 @@ const minesweeperMachine = Machine<MinesweeperContext>({
     // Configured
     ready: {
       on: {
-        REVEAL_TILE: "playing",
-        // Place mines ensuring that the selected Tile does *not* have a mine!
-
-        // Set `adjacent` for every Tile (will make the `value` calculation
-        // below very easy)
-
-        // Calculate the `value` (count of adjacent mines) of every Tile
-
-        // Make these calculations async (web worker)? So that we can show a
-        // loading state if it takes too long?
-
-        // Set `startDateTime`
-
-        // Go to `playing` sending the received `absIdx` so that it can be
-        // revealed
+        REVEAL_TILE: {
+          target: "playing",
+          actions: [
+            "setTargetTile",
+            // Place mines ensuring that the selected Tile does *not* have a mine!
+            "placeMines",
+            // Set `adjacent` for every Tile (will make the `value` calculation
+            // below very easy)
+            "setAdjacentForAll",
+            // Calculate the `value` (count of adjacent mines) of every Tile.
+            // TODO: Is this needed or not?
+            "setValueForAll",
+            "setStartDateTime",
+          ],
+        },
       },
     },
     playing: {
+      initial: "idle",
+      states: {
+        idle: {
+          // TODO: should we call `clearTargetTile` on `entry`?
+          on: {
+            SEE: "seeing",
+            SEE_MULTI: "seeingMulti",
+            FLAG: "flagging",
+            UNFLAG: "unflagging",
+          },
+        },
+        seeing: {
+          entry: ["setTargetTile", "sendSeeToTargetTile"],
+          exit: ["sendUnseeToTargetTile", "clearTargetTile"],
+          on: {
+            UNSEE: "idle",
+            REVEAL: "revealing",
+          },
+        },
+        seeingMulti: {
+          // https://xstate.js.org/docs/guides/actions.html#pure-action
+          entry: ["setTargetTile", "sendSeeToTargetTileAndAdjacent"],
+          exit: ["sendUnseeToTargetTileAndAdjacent", "clearTargetTile"],
+          on: {
+            UNSEE: "idle",
+          },
+        },
+        flagging: {
+          // remember to placedFlags++
+          entry: ["setTargetTile", "sendFlagToTargetTile"],
+          exit: ["clearTargetTile"],
+          on: {
+            "": "idle",
+          },
+        },
+        unflagging: {
+          // remember to placedFlags--
+          entry: ["setTargetTile", "sendUnflagToTargetTile"],
+          on: {
+            "": { target: "idle", actions: ["clearTargetTile"] },
+          },
+        },
+        revealing: {
+          // Send REVEAL to the target Tile
+          entry: ["setTargetTile", "sendRevealToTargetTile"],
+          on: {
+            // If target tile `hasMine` => ended.lost
+            TARGET_HAS_MINE: { target: "#minesweeper.ended.lost" },
+          },
+        },
+      },
       on: {
-        "": {},
-        // On entry, go to REVEAL_TILE with the `absIdx` received in the
-        // previous state
+        "": [
+          // If `targetTile` is set
+          { target: "revealing" },
+          // Else
+          { target: "idle" },
+        ],
 
-        REVEAL_TILE: [],
-        // Reveal the Tile
-
-        // If tile.hasMine => ended.lost
+        REVEAL_TILE: {},
 
         // `nonMineTilesShown`++
 
         // If `nonMineTilesShown` === `nonMineTiles` => ended.won
 
         // If `tile.value` === 0 then reveal adjacent Tiles recursively
+
+        REVEAL_ADJACENT: [],
+        /*
+          IF the target Tile is 'revealed' 
+            AND the count of adjacent 'flagged' Tiles === `target.value`
+            => send 'REVEAL' to every adjacent Tile.
+        */
       },
     },
     ended: {
-      // On enter set endDateTime
+      entry: "setEndDateTime",
       states: {
         won: {},
         lost: {},
@@ -174,10 +234,17 @@ const tileMachine = Machine<TileContext>({
         unseen: {
           on: {
             SEE: "seen",
-            FLAG: "flagged",
+            FLAG: "#tile.flagged",
           },
         },
-        seen: { on: { UNSEE: "unseen" } },
+        seen: {
+          on: {
+            UNSEE: "unseen",
+          },
+        },
+      },
+      on: {
+        REVEAL: "revealed",
       },
     },
     flagged: {
@@ -187,17 +254,16 @@ const tileMachine = Machine<TileContext>({
     },
     revealed: {
       type: "final",
-      // Send `value` and `hasMine` to parent
-      data: {
-        hasMine: (context: TileContext) => context.hasMine,
-        value: (context: TileContext) => getTileValue(context),
+      states: {
+        hasMine: {
+          entry: sendParent((ctx) => ({
+            type: "TARGET_HAS_MINE",
+            hasMine: ctx.hasMine,
+            value: getTileValue(ctx),
+          })),
+        },
+        nonMine: {},
       },
-    },
-  },
-  on: {
-    INSPECT_ON: {
-      target: "see",
-      actions: [], // Also send `see` to every Tile in `adjacent`
     },
   },
 });
