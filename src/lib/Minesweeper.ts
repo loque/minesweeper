@@ -217,7 +217,17 @@ interface TileContext {
   adjacent: Tile[];
 }
 
-const tileMachine = Machine<TileContext>({
+interface TileSchema {
+  states: {
+    hidden: {};
+    flagged: {};
+    revealed: {};
+  };
+}
+
+type TileEvent = { type: "FLAG" } | { type: "UNFLAG" } | { type: "REVEAL" };
+
+const tileMachine = Machine<TileContext, TileSchema, TileEvent>({
   id: "tile",
   initial: "hidden",
   context: {
@@ -229,21 +239,8 @@ const tileMachine = Machine<TileContext>({
   },
   states: {
     hidden: {
-      initial: "unseen",
-      states: {
-        unseen: {
-          on: {
-            SEE: "seen",
-            FLAG: "#tile.flagged",
-          },
-        },
-        seen: {
-          on: {
-            UNSEE: "unseen",
-          },
-        },
-      },
       on: {
+        FLAG: "flagged",
         REVEAL: "revealed",
       },
     },
@@ -254,16 +251,11 @@ const tileMachine = Machine<TileContext>({
     },
     revealed: {
       type: "final",
-      states: {
-        hasMine: {
-          entry: sendParent((ctx) => ({
-            type: "TARGET_HAS_MINE",
-            hasMine: ctx.hasMine,
-            value: getTileValue(ctx),
-          })),
-        },
-        nonMine: {},
-      },
+      entry: sendParent((ctx) => ({
+        type: "TILE_REVEALED",
+        hasMine: ctx.hasMine,
+        value: getTileValue(ctx),
+      })),
     },
   },
 });
