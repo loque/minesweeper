@@ -1,5 +1,6 @@
-import { Machine, send, assign, spawn } from "xstate";
+import { Machine, send, assign, spawn, actions } from "xstate";
 import { tileMachine, Tile } from "./Tile.js";
+const { pure } = actions;
 
 export interface MinesweeperContext {
   config: BoardConfig;
@@ -218,10 +219,29 @@ const queueIsEmpty = (ctx: MinesweeperContext, ev: any): boolean => {
   return ctx.queue.length === 0;
 };
 const queueHasRemainingTiles = (ctx: MinesweeperContext, ev: any): boolean => {
-  let condition = ctx.queue.length > 0;
-  console.log("queueHasRemainingTiles?", condition, ctx.queue.length);
-  return condition;
+  return ctx.queue.length > 0;
 };
+// If value === adjacent flags && there are hidden adjacent
+// tiles besides the flagged one
+const eligibleForAdjacentReveal = (
+  ctx: MinesweeperContext,
+  ev: any
+): boolean => {
+  const tile = ctx.board.list[ev.absIdx];
+  const adjFlags = tile.adjacent.filter((t) => t.matches("flagged")).length;
+  const possibileMines = !!tile.adjacent.filter((t) => t.matches("hidden"))
+    .length;
+
+  return tile.matches("revealed") && tile.value === adjFlags && possibileMines;
+};
+const sendRevealAdjacent = pure((ctx: MinesweeperContext, ev) => {
+  // @ts-ignore
+  return ctx.board.list[ev.absIdx].adjacent
+    .filter((t) => t.matches("hidden"))
+    .map((t) => {
+      return send("REVEAL", { to: t.actor });
+    });
+});
 
 export const minesweeperMachine = Machine<MinesweeperContext>(
   {
@@ -275,7 +295,12 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
                 actions: ["sendUnflagToTargetTile"],
               },
               REVEAL: "revealing",
-              // ADJACENT_REVEAL: "revealingAdjacent",
+              REVEAL_ADJACENT: [
+                {
+                  cond: "eligibleForAdjacentReveal",
+                  target: "revealingAdjacent",
+                },
+              ],
             },
           },
           revealing: {
@@ -338,19 +363,25 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
               ],
             },
           },
-          //   revealingAdjacent: {
-          //     entry: ["setTargetTile", "sendRevealToAdjacentTiles"],
-          //     on: {
-          //       TILE_REVEALED: [
-          //         // count revealed adjacent tiles, if missing make self transition
-          //       ],
-          //     },
-          //     /*
-          //   IF the target Tile is 'revealed'
-          //     AND the count of adjacent 'flagged' Tiles === `target.value`
-          //     => send 'REVEAL' to every adjacent Tile.
-          // */
-          //   },
+          revealingAdjacent: {
+            // Send REVEAL to adjacent hidden unflagged tiles
+            entry: ["sendRevealAdjacent"],
+            on: {
+              TILE_REVEALED: [
+                {
+                  cond: "targetTileHasMine",
+                  target: "#minesweeper.ended.lost",
+                },
+                {
+                  cond: "allNonMineTilesRevealed",
+                  target: "#minesweeper.ended.won",
+                },
+                {
+                  target: "idle",
+                },
+              ],
+            },
+          },
         },
       },
       ended: {
@@ -375,6 +406,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       queueHiddenAdjacentNonMine,
       sendRevealFromQueue,
       shiftQueue,
+      sendRevealAdjacent,
     },
     guards: {
       targetTileHasMine,
@@ -384,6 +416,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       hiddenAdjacentZeros,
       queueIsEmpty,
       queueHasRemainingTiles,
+      eligibleForAdjacentReveal,
     },
   }
 );
