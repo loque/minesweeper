@@ -1,46 +1,100 @@
-export enum TileState {
-  HIDDEN = "HIDDEN",
-  SHOWN = "SHOWN",
-  FLAGGED = "FLAGGED",
-}
+import { Machine, sendParent, actions } from "xstate";
+const { pure } = actions;
 
 export class Tile {
-  state: TileState;
-  hasMine: boolean;
-  index: number;
-  adjMines: number | null = null;
-  seen: boolean = false;
+  actor: any;
+  adjacent: Tile[] = [];
 
-  constructor(state: TileState, hasMine: boolean, index: number) {
-    this.state = state;
-    this.hasMine = hasMine;
-    this.index = index;
+  ctx(prop: string) {
+    const ctx = this.actor.state.context;
+    if (ctx.hasOwnProperty(prop)) return ctx[prop];
   }
 
-  show(adjMines: number | null = null): boolean {
-    // can not show FLAGGED or already SHOWN tiles
-    if (this.state === TileState.HIDDEN) {
-      this.state = TileState.SHOWN;
-      this.adjMines = adjMines;
-      return true;
-    }
-    return false;
+  setCtx(prop: string, value: any) {
+    const ctx = this.actor.state.context;
+    if (ctx.hasOwnProperty(prop)) return (ctx[prop] = value);
   }
 
-  toggleFlag() {
-    switch (this.state) {
-      case TileState.FLAGGED:
-        this.state = TileState.HIDDEN;
-        return -1;
-      case TileState.HIDDEN:
-        this.state = TileState.FLAGGED;
-        return 1;
-      default:
-        return 0;
-    }
+  get value() {
+    return this.adjacent.filter((t) => this.ctx("hasMine")).length;
   }
 
-  clone() {
-    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+  matches(match: string): boolean {
+    return this.actor.state.matches(match);
   }
 }
+
+// export function getTileProp(tile: Tile, prop: string) {
+//   const ctx = tile.actor.state.context;
+//   if (ctx.hasOwnProperty(prop)) return ctx[prop];
+// }
+
+// export function getTileValue(tile: Tile) {
+//   return tile.adjacent.filter((t) => getTileProp(t, "hasMine")).length;
+// }
+
+// export function tileStateMatches(tile: Tile, match: string): boolean {
+//   return tile.actor.state.matches(match);
+// }
+
+interface TileContext {
+  hasMine: boolean;
+  absIdx: number;
+  rowIdx: number;
+  colIdx: number;
+}
+
+interface TileSchema {
+  states: {
+    hidden: {};
+    flagged: {};
+    revealed: {};
+  };
+}
+
+type TileEvent = { type: "FLAG" } | { type: "UNFLAG" } | { type: "REVEAL" };
+
+export const tileMachine = Machine<TileContext, TileSchema, TileEvent>({
+  id: "tile",
+  initial: "hidden",
+  context: {
+    hasMine: false,
+    absIdx: 0,
+    rowIdx: 0,
+    colIdx: 0,
+  },
+  states: {
+    hidden: {
+      on: {
+        FLAG: "flagged",
+        REVEAL: "revealed",
+      },
+    },
+    flagged: {
+      on: {
+        UNFLAG: "hidden",
+      },
+    },
+    revealed: {
+      // type: "final",
+      entry: pure((ctx: TileContext, ev: TileEvent) => {
+        return sendParent({
+          type: "TILE_REVEALED",
+          absIdx: ctx.absIdx,
+        });
+      }),
+    },
+  },
+  // @ts-ignore
+  on: {
+    // @ts-ignore
+    REVEAL: {
+      // @ts-ignore
+      actions: pure((ctx: TileContext, ev: TileEvent) => {
+        return sendParent({
+          type: "TILE_NOT_REVEALED",
+        });
+      }),
+    },
+  },
+});
