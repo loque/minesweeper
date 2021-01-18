@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${file}",
+      "program": "${workspaceFolder}/src/lib/Test.ts",
       "sourceMaps": true,
       "smartStep": true,
       // "internalConsoleOptions": "openOnSessionStart",
