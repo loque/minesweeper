@@ -7,6 +7,7 @@ export interface MinesweeperContext {
   endDateTime: Date | null;
   board: Board;
   queue: number[];
+  testMines: number[];
 }
 export interface BoardConfig {
   rows: number;
@@ -24,6 +25,11 @@ export interface Board {
 const createEmptyBoard = assign<MinesweeperContext>({
   // @ts-ignore
   config: (ctx, ev) => ({ ...ev.config }),
+  testMines: (ctx, ev) => {
+    // @ts-ignore
+    if (Array.isArray(ev.testMines)) return [...ev.testMines];
+    return [];
+  },
   board: (ctx, ev) => {
     // @ts-ignore
     const { rows, cols } = ev.config;
@@ -56,27 +62,32 @@ const createEmptyBoard = assign<MinesweeperContext>({
 const placeMines = assign<MinesweeperContext>({
   board: (ctx, ev) => {
     const {
+      testMines,
       config,
       board: { list },
     } = ctx;
 
-    // @ts-ignore
-    const exceptedIndexes = list[ev.absIdx].adjacent.map((t) =>
-      t.ctx("absIdx")
-    );
+    let indexesOfMines = testMines;
 
-    // @ts-ignore
-    exceptedIndexes.push(ev.absIdx);
+    if (indexesOfMines.length === 0) {
+      // @ts-ignore
+      const exceptedIndexes = list[ev.absIdx].adjacent.map((t) =>
+        t.ctx("absIdx")
+      );
 
-    // Shuffle indexes of tiles eligible for containing a mine
-    const eligibleIndexes = shuffle(
-      list
-        .filter((tile) => !exceptedIndexes.includes(tile.ctx("absIdx")))
-        .map((tile) => tile.ctx("absIdx"))
-    );
+      // @ts-ignore
+      exceptedIndexes.push(ev.absIdx);
 
-    // Store indexes of all tiles with mines.
-    const indexesOfMines = eligibleIndexes.slice(0, config.mines);
+      // Shuffle indexes of tiles eligible for containing a mine
+      const eligibleIndexes = shuffle(
+        list
+          .filter((tile) => !exceptedIndexes.includes(tile.ctx("absIdx")))
+          .map((tile) => tile.ctx("absIdx"))
+      );
+
+      // Store indexes of all tiles with mines.
+      indexesOfMines = eligibleIndexes.slice(0, config.mines);
+    }
 
     // Place mines on randomly selected tiles (excluding `exceptedAbsIdx`)
     for (const absIdx of indexesOfMines) {
@@ -222,6 +233,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       endDateTime: null,
       board: { list: [], matrix: [] },
       queue: [],
+      testMines: [],
     },
     states: {
       idle: {

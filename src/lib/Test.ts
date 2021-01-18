@@ -89,9 +89,24 @@ const service = interpret<MinesweeperContext>(minesweeperMachine).onTransition(
   }
 );
 
+let testMines = [];
+let absIdx = [6];
+
+// recursive reveal
+testMines = [12, 13, 18, 24, 26, 27, 28, 29, 30, 36, 38];
+absIdx = [6];
+
 service.start();
-service.send("CONFIGURE", { config: { rows: 10, cols: 4, mines: 11 } });
-service.send("REVEAL", { absIdx: 6 });
+service.send("CONFIGURE", {
+  config: { rows: 10, cols: 4, mines: 11 },
+  testMines: testMines,
+});
+service.send("REVEAL", { absIdx: absIdx[0] });
+if (absIdx.length > 1) {
+  for (let i = 1; i < absIdx.length; i++) {
+    service.send("REVEAL", { absIdx: absIdx[i] });
+  }
+}
 // const { list }: { list: Tile[] } = service.state.context.board;
 // list
 //   .filter((tile) => getTileProp(tile, "hasMine") === false)
