@@ -154,14 +154,14 @@ const sendRevealFromQueue = send("REVEAL", {
     return ctx.board.list[lastAbxIdx].actor;
   },
 });
-const queueHiddenAdjacentZeros = assign<MinesweeperContext>({
+const queueHiddenAdjacentNonMine = assign<MinesweeperContext>({
   queue: (ctx, ev) => {
     // @ts-ignore
-    const hiddenAdjacentZeros = ctx.board.list[ev.absIdx].adjacent
-      .filter((tile) => tile.matches("hidden") && tile.value === 0)
+    const hiddenAdjacentNonMine = ctx.board.list[ev.absIdx].adjacent
+      .filter((tile) => tile.matches("hidden") && tile.ctx("hasMine") === false)
       .map((tile) => tile.ctx("absIdx"));
-    console.log(">>>> queueHiddenAdjacentZeros", hiddenAdjacentZeros);
-    return Array.from(new Set([...ctx.queue, ...hiddenAdjacentZeros]));
+    console.log(">>>> queueHiddenAdjacentNonMine", hiddenAdjacentNonMine);
+    return Array.from(new Set([...ctx.queue, ...hiddenAdjacentNonMine]));
   },
 });
 const shiftQueue = assign<MinesweeperContext>({
@@ -172,11 +172,11 @@ const shiftQueue = assign<MinesweeperContext>({
     return nextQueue;
   },
 });
-const targetTileHasMine = (ctx: MinesweeperContext, ev: any) => {
+const targetTileHasMine = (ctx: MinesweeperContext, ev: any): boolean => {
   // @ts-ignore
   return ctx.board.list[ev.absIdx].ctx("hasMine");
 };
-const allNonMineTilesRevealed = (ctx: MinesweeperContext, ev: any) => {
+const allNonMineTilesRevealed = (ctx: MinesweeperContext, ev: any): boolean => {
   const {
     config,
     board: { list },
@@ -188,20 +188,28 @@ const allNonMineTilesRevealed = (ctx: MinesweeperContext, ev: any) => {
   ).length;
   return totalNonMineTiles === nonMineTilesRevealed;
 };
-const targetTileValueIsNonZero = (ctx: MinesweeperContext, ev: any) => {
+const targetTileValueIsNonZero = (
+  ctx: MinesweeperContext,
+  ev: any
+): boolean => {
   return ctx.board.list[ev.absIdx].value !== 0;
 };
-const targetTileValueIsZero = (ctx: MinesweeperContext, ev: any) => {
+const targetTileValueIsZero = (ctx: MinesweeperContext, ev: any): boolean => {
   return ctx.board.list[ev.absIdx].value === 0;
 };
-const hiddenAdjacentZeros = (ctx: MinesweeperContext, ev: any) => {
-  return ctx.board.list[ev.absIdx].adjacent.filter(
+const hiddenAdjacentZeros = (ctx: MinesweeperContext, ev: any): boolean => {
+  return !!ctx.board.list[ev.absIdx].adjacent.filter(
     (tile) => tile.matches("hidden") && tile.value === 0
-  );
+  ).length;
 };
-const queueIsEmpty = (ctx: MinesweeperContext, ev: any) => {
+const queueIsEmpty = (ctx: MinesweeperContext, ev: any): boolean => {
   console.log("queueIsEmpty?", ctx.queue.length);
   return ctx.queue.length === 0;
+};
+const queueHasRemainingTiles = (ctx: MinesweeperContext, ev: any): boolean => {
+  let condition = ctx.queue.length > 0;
+  console.log("queueHasRemainingTiles?", condition, ctx.queue.length);
+  return condition;
 };
 
 export const minesweeperMachine = Machine<MinesweeperContext>(
@@ -230,7 +238,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
             target: "playing.revealing",
             actions: [
               // Set `adjacent` for every Tile (will make the `value` calculation
-              // below very easy)
+              // very easy)
               "setAdjacent",
               // Place mines ensuring that the `ev.absIdx` does *not* have a mine.
               // Also, place them in a way that the Tile on `ev.absIdx` value
@@ -274,61 +282,46 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
                 {
                   cond: "targetTileValueIsNonZero",
                   target: "idle",
-                  // @ts-ignore
-                  // action: (ctx, ev) =>
-                  //   console.log(
-                  //     "not quequeing because ",
-                  //     ev.absIdx,
-                  //     "is non zero"
-                  //   ),
                 },
                 {
                   // If we reach this condition it means that tile value is 0
                   target: "revealingRecursively",
-                  actions: ["queueHiddenAdjacentZeros"],
+                  actions: ["queueHiddenAdjacentNonMine"],
                 },
               ],
             },
           },
           revealingRecursively: {
-            entry: ["sendRevealFromQueue"],
-            exit: ["shiftQueue"],
-            always: [
-              {
-                cond: "queueIsEmpty",
-                target: "idle",
-                // @ts-ignore
-                // action: (ctx, ev) =>
-                //   console.log(
-                //     ">>>>>>>>>>>>>>>>>>>>>>> GOING TO 'idle' BECAUSE always.queueIsEmpty!!!!!!!!!!!!"
-                //   ),
+            initial: "revealSent",
+            states: {
+              revealSent: {
+                entry: ["sendRevealFromQueue"],
+                always: "unqueued",
               },
-            ],
+              unqueued: {
+                entry: ["shiftQueue"],
+              },
+            },
             on: {
               TILE_REVEALED: [
-                // {
-                //   cond: "queueIsEmpty",
-                //   target: "idle",
-                //   // @ts-ignore
-                //   action: (ctx, ev) =>
-                //     console.log(
-                //       ">>>>>>>>>>>>>>>>>>>>>>> GOING TO 'idle' BECAUSE TILE_REVEALED.queueIsEmpty!!!!!!!!!!!!"
-                //     ),
-                // },
                 {
                   cond: "allNonMineTilesRevealed",
                   target: "#minesweeper.ended.won",
                 },
                 {
-                  cond: "hiddenAdjacentZeros",
+                  cond: "targetTileValueIsZero",
                   target: "revealingRecursively",
                   internal: false,
-                  actions: "queueHiddenAdjacentZeros",
+                  actions: "queueHiddenAdjacentNonMine",
                 },
                 {
+                  cond: "queueHasRemainingTiles",
+                  target: "revealingRecursively",
+                  internal: false,
+                },
+                {
+                  // No more items in queue, so go to 'idle'
                   target: "idle",
-                  // @ts-ignore
-                  action: (ctx, ev) => console.log(">>> Going to 'idle' "),
                 },
               ],
             },
@@ -347,14 +340,6 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
           // */
           //   },
         },
-        // on: {
-        //   "": [
-        //     // If `targetTile` is set
-        //     { target: "revealing" },
-        //     // Else
-        //     { target: "idle" },
-        //   ],
-        // },
       },
       ended: {
         entry: "setEndDateTime",
@@ -375,7 +360,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       sendFlagToTargetTile,
       sendUnflagToTargetTile,
       sendReveal,
-      queueHiddenAdjacentZeros,
+      queueHiddenAdjacentNonMine,
       sendRevealFromQueue,
       shiftQueue,
     },
@@ -386,6 +371,7 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       targetTileValueIsZero,
       hiddenAdjacentZeros,
       queueIsEmpty,
+      queueHasRemainingTiles,
     },
   }
 );

@@ -11,21 +11,30 @@ enum LogMode {
   revealAll,
 }
 
-function log(matrix: BoardMatrix, mode: LogMode | null = null) {
+function log(
+  matrix: BoardMatrix,
+  mode: LogMode | null = null,
+  targetAbsIdx: number | null = null
+) {
   matrix.forEach((row: Tile[]) => {
-    console.log(row.map((tile) => pad(mapTile(tile, mode))).join(" "));
+    console.log(
+      ...row.map((tile) =>
+        current(mapTile(tile, mode), tile.ctx("absIdx") === targetAbsIdx)
+      )
+    );
   });
 }
 
 function mapTile(tile: Tile, mode: LogMode | null) {
-  if (mode === LogMode.displayIndexes) return tile.ctx("absIdx");
-  if (mode === LogMode.revealAll)
-    return tile.ctx("hasMine") ? "💣" : tile.value;
+  if (mode === LogMode.displayIndexes) return pad(tile.ctx("absIdx"));
+  const unflagged = pad(tile.ctx("hasMine") ? "💣" : tile.value);
 
-  if (tile.actor.state.matches("hidden")) return "___";
-  if (tile.actor.state.matches("flagged")) return "🏳️ ";
-  if (tile.actor.state.matches("revealed"))
-    return tile.ctx("hasMine") ? "💣" : tile.value;
+  if (mode === LogMode.revealAll) return unflagged;
+
+  if (tile.actor.state.matches("hidden"))
+    return "\x1b[2m" + unflagged + "\x1b[0m";
+  if (tile.actor.state.matches("flagged")) return pad("🏳️");
+  if (tile.actor.state.matches("revealed")) return unflagged;
 }
 
 function pad(str: any, length: number = 3) {
@@ -39,7 +48,13 @@ function pad(str: any, length: number = 3) {
   return str;
 }
 
-let firstIdle = true;
+function current(str: string, shouldColor: boolean) {
+  if (shouldColor) {
+    // str = "\x1b[36m" + str + "\x1b[0m"; // cyan
+    str = "\x1b[45m\x1b[30m" + str + "\x1b[0m";
+  }
+  return str;
+}
 
 const service = interpret<MinesweeperContext>(minesweeperMachine).onTransition(
   (state) => {
@@ -48,6 +63,8 @@ const service = interpret<MinesweeperContext>(minesweeperMachine).onTransition(
     console.log(`[${state.toStrings().join(", ")}]`);
     console.log("Event:", state.event);
     console.log("Q:", queue);
+    // @ts-ignore
+    const targetTile = queue[0] || state.event?.absIdx;
 
     if (state.matches("idle")) {
       console.log("config:", config);
@@ -59,9 +76,7 @@ const service = interpret<MinesweeperContext>(minesweeperMachine).onTransition(
 
     if (state.matches("playing")) {
       // console.log("startDateTime:", startDateTime);
-      const mode = firstIdle ? LogMode.revealAll : null;
-      log(board.matrix, mode);
-      firstIdle = false;
+      log(board.matrix, null, targetTile);
     }
 
     if (state.matches("ended")) {

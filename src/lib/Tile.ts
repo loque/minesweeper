@@ -16,7 +16,11 @@ export class Tile {
   }
 
   get value() {
-    return this.adjacent.filter((t) => this.ctx("hasMine")).length;
+    return this.adjacent.filter((t) => t.ctx("hasMine")).length;
+  }
+
+  get status() {
+    return this.actor.state.toStrings().join(", ");
   }
 
   matches(match: string): boolean {
