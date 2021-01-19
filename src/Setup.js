@@ -2,7 +2,7 @@ import "./Setup.scss";
 import { useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { useConfig } from "./lib/config";
-import { DifficultyLevel } from "./lib/Game";
+// import { DifficultyLevel } from "./lib/Game";
 import Header from "./components/Header";
 import {
   RiUser3Fill as UserIcon,
@@ -58,7 +58,7 @@ export default function Setup() {
             <DifficultyIcon /> Select difficulty level
           </h3>
           <div className="section-body difficulty">
-            {Object.keys(DifficultyLevel).map((level) => (
+            {/* {Object.keys(DifficultyLevel).map((level) => (
               <button
                 key={level}
                 className={diffClassName(level)}
@@ -66,7 +66,7 @@ export default function Setup() {
               >
                 {level}
               </button>
-            ))}
+            ))} */}
           </div>
         </div>
         <div className="play-button-wrapper">

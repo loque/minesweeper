@@ -5,21 +5,32 @@ export class Tile {
   actor: any;
   adjacent: Tile[] = [];
 
-  ctx(prop: string) {
-    const ctx = this.actor.state.context;
-    if (ctx.hasOwnProperty(prop)) return ctx[prop];
-  }
-
   setCtx(prop: string, value: any) {
     const ctx = this.actor.state.context;
     if (ctx.hasOwnProperty(prop)) return (ctx[prop] = value);
   }
 
-  get value() {
-    return this.adjacent.filter((t) => t.ctx("hasMine")).length;
+  get hasMine() {
+    return this.actor.state.context.hasMine;
   }
 
-  get status() {
+  get absIdx() {
+    return this.actor.state.context.absIdx;
+  }
+
+  get rowIdx() {
+    return this.actor.state.context.rowIdx;
+  }
+
+  get colIdx() {
+    return this.actor.state.context.colIdx;
+  }
+
+  get value() {
+    return this.adjacent.filter((t) => t.hasMine).length;
+  }
+
+  get states() {
     return this.actor.state.toStrings().join(", ");
   }
 

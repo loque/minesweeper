@@ -1,5 +1,5 @@
 import { Machine, send, assign, spawn, actions } from "xstate";
-import { tileMachine, Tile } from "./Tile.js";
+import { tileMachine, Tile } from "./Tile";
 const { pure } = actions;
 
 const createEmptyBoard = assign<MinesweeperContext, MinesweeperEvents>({
@@ -52,17 +52,15 @@ const placeMines = assign<MinesweeperContext, MinesweeperEvents>({
     let indexesOfMines = testMines;
 
     if (indexesOfMines.length === 0) {
-      const exceptedIndexes = list[ev.absIdx].adjacent.map((t) =>
-        t.ctx("absIdx")
-      );
+      const exceptedIndexes = list[ev.absIdx].adjacent.map((t) => t.absIdx);
 
       exceptedIndexes.push(ev.absIdx);
 
       // Shuffle indexes of tiles eligible for containing a mine
       const eligibleIndexes = shuffle(
         list
-          .filter((tile) => !exceptedIndexes.includes(tile.ctx("absIdx")))
-          .map((tile) => tile.ctx("absIdx"))
+          .filter((tile) => !exceptedIndexes.includes(tile.absIdx))
+          .map((tile) => tile.absIdx)
       );
 
       // Store indexes of all tiles with mines.
@@ -143,7 +141,7 @@ const sendRevealFromQueue = send<MinesweeperContext, MinesweeperEvents>(
   {
     to: (ctx) => {
       const lastAbxIdx = ctx.queue[0];
-      return ctx.board.list[lastAbxIdx].actor;
+      return ctx.board.list[lastAbxIdx]?.actor;
     },
   }
 );
@@ -155,8 +153,8 @@ const queueHiddenAdjacentNonMine = assign<
     const hiddenAdjacentNonMine = ctx.board.list[
       (ev as TileRevealedEvent).absIdx
     ].adjacent
-      .filter((tile) => tile.matches("hidden") && tile.ctx("hasMine") === false)
-      .map((tile) => tile.ctx("absIdx"));
+      .filter((tile) => tile.matches("hidden") && tile.hasMine === false)
+      .map((tile) => tile.absIdx);
     return Array.from(new Set([...ctx.queue, ...hiddenAdjacentNonMine]));
   },
 });
@@ -167,7 +165,7 @@ const targetTileHasMine = (
   ctx: MinesweeperContext,
   ev: MinesweeperEvents
 ): boolean => {
-  return ctx.board.list[(ev as TileRevealedEvent).absIdx].ctx("hasMine");
+  return ctx.board.list[(ev as TileRevealedEvent).absIdx].hasMine;
 };
 const allNonMineTilesRevealed = (ctx: MinesweeperContext): boolean => {
   const {
@@ -177,7 +175,7 @@ const allNonMineTilesRevealed = (ctx: MinesweeperContext): boolean => {
   const totalTiles = config.rows * config.cols;
   const totalNonMineTiles = totalTiles - config.mines;
   const nonMineTilesRevealed = list.filter(
-    (tile) => tile.matches("revealed") && tile.ctx("hasMine") === false
+    (tile) => tile.matches("revealed") && tile.hasMine === false
   ).length;
   return totalNonMineTiles === nonMineTilesRevealed;
 };
@@ -243,7 +241,7 @@ export const minesweeperMachine = Machine<
         on: {
           CONFIGURE: {
             target: "ready",
-            actions: "createEmptyBoard",
+            actions: ["createEmptyBoard", "setAdjacent"],
           },
         },
       },
@@ -252,13 +250,12 @@ export const minesweeperMachine = Machine<
           REVEAL: {
             target: "playing.revealing",
             actions: [
-              // Set `adjacent` for every Tile (will make the `value` calculation
-              // very easy)
-              "setAdjacent",
+              () => console.time("placeMine"),
               // Place mines ensuring that the `ev.absIdx` does *not* have a mine.
               // Also, place them in a way that the Tile on `ev.absIdx` value
               // is 0. Which will trigger a recursive reveal.
               "placeMines",
+              () => console.timeEnd("placeMine"),
               "setStartDateTime",
             ],
           },

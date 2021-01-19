@@ -23,15 +23,17 @@
   background-color: #373737;
   border-radius: 4px;
   position: relative;
+  transition: transform 150ms ease-in-out;
 
   &.hidden:not(.disabled) {
     cursor: pointer;
     &.inspecting {
-      background-color: #ffffffbd;
+      background-color: #4d4d4d;
+      transform: scale(0.94);
     }
   }
 
-  &.shown {
+  &.revealed {
     background-color: #8c8b8b;
 
     &.empty {
@@ -52,13 +54,10 @@
     &:not(.disabled) {
       cursor: pointer;
       &.inspecting {
-        background-color: #ffffff52;
+        background-color: #4d4d4d;
+        transform: scale(0.94);
       }
     }
-  }
-
-  &.test {
-    background-color: blue !important;
   }
 
   .board-tile-content {

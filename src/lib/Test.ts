@@ -21,15 +21,15 @@ function log(
   matrix.forEach((row: Tile[]) => {
     console.log(
       ...row.map((tile) =>
-        current(mapTile(tile, mode), tile.ctx("absIdx") === targetAbsIdx)
+        current(mapTile(tile, mode), tile.absIdx === targetAbsIdx)
       )
     );
   });
 }
 
 function mapTile(tile: Tile, mode: LogMode | null) {
-  if (mode === LogMode.displayIndexes) return pad(tile.ctx("absIdx"));
-  const unflagged = pad(tile.ctx("hasMine") ? "💣" : tile.value);
+  if (mode === LogMode.displayIndexes) return pad(tile.absIdx);
+  const unflagged = pad(tile.hasMine ? "💣" : tile.value);
 
   if (mode === LogMode.revealAll) return unflagged;
 

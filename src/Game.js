@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import { useGame } from "./lib/useGame";
 import { useConfig } from "./lib/config";
+import { useInspection } from "./utils/useInspection";
+import { useResize } from "./utils/useResize";
 
 import {
   RiFlag2Fill as FlagIcon,
@@ -22,138 +24,93 @@ export default function Game() {
   const config = useConfig();
 
   const location = useLocation();
-  const prevLocationKey = useRef(location.key);
+  // const prevLocationKey = useRef(location.key);
 
-  const game = useGame(config.difficulty);
-  const prevGameState = useRef(game.state);
+  const game = useGame(config.level);
 
   const boardRef = useRef();
   const [tileSize, setTileSize] = useState(0);
-  const [tileUnderMouse, setTileUnderMouse] = useState(null);
-  const [seeTiles, setSeeTiles] = useState(false);
 
-  // const inspectingTile = useRef("");
+  // TODO: implement reset
+  // useEffect(() => {
+  //   if (prevLocationKey.current !== location.key) {
+  //     prevLocationKey.current = location.key;
+  //     game.reset();
+  //   }
+  // }, [game, prevLocationKey, location.key]);
 
-  useEffect(() => {
-    if (prevLocationKey.current !== location.key) {
-      prevLocationKey.current = location.key;
-      game.reset();
+  // const result = buildResult(game, config);
+  // useEffect(() => {
+  //   if (prevGameState.current !== game.state) {
+  //     prevGameState.current = game.state;
+  //     if (game.matches('ended')) {
+  //       config.addResult(result);
+  //     }
+  //   }
+  // }, [prevGameState, game.state, config, result]);
+
+  // Observe board width changes and calculate `tileSize`
+  function onBoardResize(boardEl) {
+    // We have to check if board has children because they may not be
+    // mounted yet
+    if (boardEl.children[0]) {
+      const colsCount = boardEl.children[0].children.length;
+      const { width } = boardEl.getBoundingClientRect();
+      const nextTileSize = width / colsCount - tileMargin * 2;
+      setTileSize(nextTileSize);
     }
-  }, [game, prevLocationKey, location.key]);
+  }
+  useResize(boardRef, onBoardResize);
 
-  const result = buildResult(game, config);
-  useEffect(() => {
-    if (prevGameState.current !== game.state) {
-      prevGameState.current = game.state;
-      if (game.state === "ENDED") {
-        config.addResult(result);
-      }
+  function onInspectOneEnd(ctx) {
+    const { rowIdx, colIdx } = ctx;
+    const targetTile = game.board[rowIdx]?.[colIdx];
+    if (targetTile) {
+      game.actions.revealTile(targetTile.absIdx);
     }
-  }, [prevGameState, game.state, config, result]);
-
-  // TODO: add comments
-  useEffect(() => {
-    const board = boardRef.current;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const board = entry.target;
-        const colsCount = board.children[0].children.length;
-        const { width } = board.getBoundingClientRect();
-        const nextTileSize = width / colsCount - tileMargin * 2;
-        setTileSize(nextTileSize);
-      }
-    });
-
-    if (board) resizeObserver.observe(board);
-    return () => board && resizeObserver.unobserve(board);
-  }, [boardRef]);
-
-  // We activate (mousedown) / deactivate (mouseup) underlying tile detection.
-  // Will work even if mouseup is fired outside the board.
-  // Also, we make the first detection on mousedown and remove detection state
-  // on mouseup.
-  useEffect(() => {
-    const detectUnderlyingTile = makeDetector(boardRef.current, tileSize);
-
-    function activateDetection(e) {
-      if (e.button === 1) {
-        setSeeTiles(true);
-        detectUnderlyingTile(e);
-      }
-    }
-
-    function deactivateDetection(e) {
-      if (e.button === 1) {
-        setSeeTiles(false);
-        setTileUnderMouse(null);
-      }
-    }
-
-    window.addEventListener("mousedown", activateDetection);
-    window.addEventListener("mouseup", deactivateDetection);
-    return () => {
-      window.removeEventListener("mousedown", activateDetection);
-      window.removeEventListener("mouseup", deactivateDetection);
-    };
-  }, [boardRef, tileSize]);
-
-  // Detect underlying tile on mousemove only when underlying detection
-  // is active. See previous `useEffect`.
-  useEffect(() => {
-    const board = boardRef.current;
-    const shouldListen = seeTiles && board && tileSize;
-    const detectUnderlyingTile = makeDetector(board, tileSize);
-
-    shouldListen && window.addEventListener("mousemove", detectUnderlyingTile);
-    return () => {
-      shouldListen &&
-        window.removeEventListener("mousemove", detectUnderlyingTile);
-    };
-  }, [seeTiles, boardRef, tileSize]);
-
-  // Calculate the corresponding `rowIdx` and `colIdx` of the tile under
-  // the mouse.
-  function makeDetector(board, tileSize) {
-    return (e) => {
-      const { left, top } = board.getBoundingClientRect();
-      // Calculate the mouse position relative to the board
-      const mouseX = e.pageX - left;
-      const mouseY = e.pageY - top;
-      if (mouseX < 0 || mouseY < 0) {
-        setTileUnderMouse(null);
-      } else {
-        const currTileSize = tileSize + tileMargin * 2;
-        const colIdx = Math.floor(mouseX / currTileSize);
-        const rowIdx = Math.floor(mouseY / currTileSize);
-        setTileUnderMouse({ rowIdx, colIdx });
-      }
-    };
   }
 
-  useEffect(() => {
-    if (tileUnderMouse) {
-      game.setSeenTileAndAdj(tile, true);
-    } else {
-      game.setSeenTileAndAdj(tile, false);
+  function onInspectMultiEnd(ctx) {
+    const { rowIdx, colIdx } = ctx;
+    const targetTile = game.board[rowIdx]?.[colIdx];
+    if (targetTile) {
+      game.actions.revealAdjacentTiles(targetTile.absIdx);
     }
-  }, [game, tileUnderMouse]);
+  }
 
-  function tileClick(tile) {
-    return (e) => {
-      e.preventDefault();
-      if (e.button === 0) game.showTile(tile);
-    };
+  const inspect = useInspection(
+    boardRef,
+    tileSize,
+    tileMargin,
+    onInspectOneEnd,
+    onInspectMultiEnd
+  );
+
+  const inspectedTiles = [];
+
+  if (!inspect.matches("idle") && typeof inspect.context.rowIdx === "number") {
+    const { rowIdx, colIdx } = inspect.context;
+    const centerTile = game?.board[rowIdx]?.[colIdx];
+    if (centerTile) {
+      inspectedTiles.push(centerTile.absIdx);
+      if (inspect.matches("inspectingMulti")) {
+        centerTile.adjacent.forEach((tile) => inspectedTiles.push(tile.absIdx));
+      }
+    }
   }
 
   function tileContextMenu(tile) {
     return (e) => {
       e.preventDefault();
-      game.flagTile(tile);
+      if (tile.matches("flagged")) {
+        game.actions.unflagTile(tile.absIdx);
+      } else if (tile.matches("hidden")) {
+        game.actions.flagTile(tile.absIdx);
+      }
     };
   }
 
-  const tilesCNs = ["board-tile", [game.state === "ENDED", "disabled"]];
+  const tilesCNs = ["board-tile", [game.matches("ended"), "disabled"]];
   return (
     <div className="view">
       <div className="container">
@@ -162,31 +119,28 @@ export default function Game() {
 
         <div
           ref={boardRef}
-          {...bCN("board", [game.state === "ENDED", "disabled"])}
+          {...bCN("board", [game.matches("ended"), "disabled"])}
         >
           {game.board &&
             game.board.map((row, rowIdx) => {
               return (
                 <div className="board-row" key={rowIdx}>
                   {row.map((tile, colIdx) => {
-                    const value = tile.adjMines || 0;
                     const tileCNs = [
                       ...tilesCNs,
-                      tile.state.toLowerCase(),
+                      [tile.matches("hidden"), "hidden"],
+                      [tile.matches("flagged"), "flagged"],
+                      [tile.matches("revealed"), "revealed"],
                       [tile.hasMine, "hasMine"],
-                      color[Math.min(value, color.length - 1)],
-                      [value === 0, "empty"],
+                      color[Math.min(tile.value, color.length - 1)],
+                      [tile.value === 0, "empty"],
                       [tile.inspecting, "inspecting"],
-                      [
-                        tileUnderMouse?.rowIdx === rowIdx,
-                        tileUnderMouse?.colIdx === colIdx,
-                        "test",
-                      ],
+                      [inspectedTiles.includes(tile.absIdx), "inspecting"],
                     ];
 
                     return (
                       <div
-                        key={tile.index}
+                        key={tile.absIdx}
                         {...bCN(tileCNs)}
                         style={{
                           width: tileSize + "px",
@@ -194,15 +148,17 @@ export default function Game() {
                           margin: tileMargin + "px",
                           fontSize: tileMargin + "em",
                         }}
-                        onClick={tileClick(tile)}
                         onContextMenu={tileContextMenu(tile)}
                       >
                         <div className="board-tile-content">
-                          {!!value && value}
-                          {tile.state === "FLAGGED" && (
+                          {tile.matches("revealed") &&
+                            !tile.hasMine &&
+                            !!tile.value &&
+                            tile.value}
+                          {tile.matches("flagged") && (
                             <FlagIcon className="red" />
                           )}
-                          {tile.state === "SHOWN" && tile.hasMine && (
+                          {tile.matches("revealed") && tile.hasMine && (
                             <MineIcon />
                           )}
                         </div>
@@ -213,7 +169,7 @@ export default function Game() {
               );
             })}
         </div>
-        {game.state === "ENDED" && <EndGame result={game.result} />}
+        {game.matches("ended") && <EndGame game={game} />}
       </div>
     </div>
   );
@@ -238,18 +194,18 @@ function bCN(...cNs) {
   return { className };
 }
 
-function buildResult(game, config) {
-  return {
-    startTime: game.startTime,
-    endTime: game.endTime,
-    difficulty: game.difficulty,
-    gameTime: game.gameTime,
-    result: game.result,
-    name: config.name,
-  };
-}
+// function buildResult(game, config) {
+//   return {
+//     startTime: game.startDateTime,
+//     endTime: game.endDateTime,
+//     level: config.level,
+//     gameTime: game.gameTime,
+//     result: game.result,
+//     name: config.name,
+//   };
+// }
 
-function EndGame({ result }) {
+function EndGame({ game }) {
   const autofocus = useRef();
 
   useEffect(() => {
@@ -259,12 +215,12 @@ function EndGame({ result }) {
   return (
     <div className="endgame">
       <div className="endgame-modal">
-        {result === "WON" && (
+        {game.matches("ended.won") && (
           <div className="endgame-result icon-text">
             <HappyIcon className="yellow" /> You won!
           </div>
         )}
-        {result === "LOST" && (
+        {game.matches("ended.lost") && (
           <div className="endgame-result icon-text">
             <SadIcon className="red" /> You Lost!
           </div>
