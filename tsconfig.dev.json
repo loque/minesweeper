@@ -5,6 +5,7 @@
     "rootDir": "./src/lib",
     "outDir": "./.dev",
     "moduleResolution": "node",
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true
   }
 }

@@ -2,38 +2,18 @@ import { Machine, send, assign, spawn, actions } from "xstate";
 import { tileMachine, Tile } from "./Tile.js";
 const { pure } = actions;
 
-export interface MinesweeperContext {
-  config: BoardConfig;
-  startDateTime: Date | null;
-  endDateTime: Date | null;
-  board: Board;
-  queue: number[];
-  testMines: number[];
-}
-export interface BoardConfig {
-  rows: number;
-  cols: number;
-  mines: number;
-}
-
-export type BoardList = Tile[];
-export type BoardMatrix = Tile[][];
-export interface Board {
-  list: BoardList;
-  matrix: BoardMatrix;
-}
-
-const createEmptyBoard = assign<MinesweeperContext>({
-  // @ts-ignore
-  config: (ctx, ev) => ({ ...ev.config }),
-  testMines: (ctx, ev) => {
-    // @ts-ignore
-    if (Array.isArray(ev.testMines)) return [...ev.testMines];
+const createEmptyBoard = assign<MinesweeperContext, MinesweeperEvents>({
+  config: (_, ev) => ({ ...(ev as ConfigureEvent).config }),
+  testMines: (_, ev) => {
+    ev = ev as ConfigureEvent;
+    if (Array.isArray(ev.testMines)) {
+      const testMines = ev?.testMines || [];
+      return [...testMines];
+    }
     return [];
   },
-  board: (ctx, ev) => {
-    // @ts-ignore
-    const { rows, cols } = ev.config;
+  board: (_, ev) => {
+    const { rows, cols } = (ev as ConfigureEvent).config;
     const list: BoardList = [];
     const matrix: BoardMatrix = [];
     let absIdx = 0;
@@ -60,23 +40,22 @@ const createEmptyBoard = assign<MinesweeperContext>({
   },
 });
 
-const placeMines = assign<MinesweeperContext>({
+const placeMines = assign<MinesweeperContext, MinesweeperEvents>({
   board: (ctx, ev) => {
     const {
       testMines,
       config,
       board: { list },
     } = ctx;
+    ev = ev as RevealEvent;
 
     let indexesOfMines = testMines;
 
     if (indexesOfMines.length === 0) {
-      // @ts-ignore
       const exceptedIndexes = list[ev.absIdx].adjacent.map((t) =>
         t.ctx("absIdx")
       );
 
-      // @ts-ignore
       exceptedIndexes.push(ev.absIdx);
 
       // Shuffle indexes of tiles eligible for containing a mine
@@ -109,7 +88,7 @@ function getAdjacentForOne(
   matrix: BoardMatrix,
   targetRI: number,
   targetCI: number
-) {
+): Tile[] {
   const adjacent = [];
   for (let rowDiff = -1; rowDiff < 2; rowDiff++) {
     for (let colDiff = -1; colDiff < 2; colDiff++) {
@@ -123,7 +102,7 @@ function getAdjacentForOne(
   return adjacent;
 }
 
-const setAdjacent = assign<MinesweeperContext>({
+const setAdjacent = assign<MinesweeperContext, MinesweeperEvents>({
   board: (ctx) => {
     const { list, matrix } = ctx.board;
     for (const tile of list) {
@@ -135,60 +114,62 @@ const setAdjacent = assign<MinesweeperContext>({
   },
 });
 
-const setStartDateTime = assign<MinesweeperContext>({
+const setStartDateTime = assign<MinesweeperContext, MinesweeperEvents>({
   startDateTime: new Date(),
 });
 
-const setEndDateTime = assign<MinesweeperContext>({
+const setEndDateTime = assign<MinesweeperContext, MinesweeperEvents>({
   endDateTime: new Date(),
 });
 
-const sendFlagToTargetTile = send("FLAG", {
-  to: (ctx: MinesweeperContext, ev) =>
-    // @ts-ignore
-    ctx.board.list[ev.absIdx].actor,
-});
+const sendFlagToTargetTile = send<MinesweeperContext, MinesweeperEvents>(
+  "FLAG",
+  {
+    to: (ctx, ev) => ctx.board.list[(ev as FlagEvent).absIdx].actor,
+  }
+);
 
-const sendUnflagToTargetTile = send("UNFLAG", {
-  to: (ctx: MinesweeperContext, ev) =>
-    // @ts-ignore
-    ctx.board.list[ev.absIdx].actor,
+const sendUnflagToTargetTile = send<MinesweeperContext, MinesweeperEvents>(
+  "UNFLAG",
+  {
+    to: (ctx, ev) => ctx.board.list[(ev as UnflagEvent).absIdx].actor,
+  }
+);
+const sendReveal = send<MinesweeperContext, MinesweeperEvents>("REVEAL", {
+  to: (ctx, ev) => ctx.board.list[(ev as RevealEvent).absIdx].actor,
 });
-const sendReveal = send("REVEAL", {
-  to: (ctx: MinesweeperContext, ev) =>
-    // @ts-ignore
-    ctx.board.list[ev.absIdx].actor,
-});
-const sendRevealFromQueue = send("REVEAL", {
-  to: (ctx: MinesweeperContext, ev) => {
-    const lastAbxIdx = ctx.queue[0];
-    console.log(">>> sending REVEL to ", lastAbxIdx);
-    return ctx.board.list[lastAbxIdx].actor;
-  },
-});
-const queueHiddenAdjacentNonMine = assign<MinesweeperContext>({
+const sendRevealFromQueue = send<MinesweeperContext, MinesweeperEvents>(
+  "REVEAL",
+  {
+    to: (ctx) => {
+      const lastAbxIdx = ctx.queue[0];
+      return ctx.board.list[lastAbxIdx].actor;
+    },
+  }
+);
+const queueHiddenAdjacentNonMine = assign<
+  MinesweeperContext,
+  MinesweeperEvents
+>({
   queue: (ctx, ev) => {
-    // @ts-ignore
-    const hiddenAdjacentNonMine = ctx.board.list[ev.absIdx].adjacent
+    const hiddenAdjacentNonMine = ctx.board.list[
+      (ev as TileRevealedEvent).absIdx
+    ].adjacent
       .filter((tile) => tile.matches("hidden") && tile.ctx("hasMine") === false)
       .map((tile) => tile.ctx("absIdx"));
-    console.log(">>>> queueHiddenAdjacentNonMine", hiddenAdjacentNonMine);
     return Array.from(new Set([...ctx.queue, ...hiddenAdjacentNonMine]));
   },
 });
-const shiftQueue = assign<MinesweeperContext>({
-  queue: (ctx, ev) => {
-    // @ts-ignore
-    const nextQueue = ctx.queue.slice(1);
-    console.log(">>> shiftQueue", JSON.stringify(nextQueue));
-    return nextQueue;
-  },
+const shiftQueue = assign<MinesweeperContext, MinesweeperEvents>({
+  queue: (ctx) => ctx.queue.slice(1),
 });
-const targetTileHasMine = (ctx: MinesweeperContext, ev: any): boolean => {
-  // @ts-ignore
-  return ctx.board.list[ev.absIdx].ctx("hasMine");
+const targetTileHasMine = (
+  ctx: MinesweeperContext,
+  ev: MinesweeperEvents
+): boolean => {
+  return ctx.board.list[(ev as TileRevealedEvent).absIdx].ctx("hasMine");
 };
-const allNonMineTilesRevealed = (ctx: MinesweeperContext, ev: any): boolean => {
+const allNonMineTilesRevealed = (ctx: MinesweeperContext): boolean => {
   const {
     config,
     board: { list },
@@ -202,48 +183,50 @@ const allNonMineTilesRevealed = (ctx: MinesweeperContext, ev: any): boolean => {
 };
 const targetTileValueIsNonZero = (
   ctx: MinesweeperContext,
-  ev: any
+  ev: MinesweeperEvents
 ): boolean => {
-  return ctx.board.list[ev.absIdx].value !== 0;
+  return ctx.board.list[(ev as TileRevealedEvent).absIdx].value !== 0;
 };
-const targetTileValueIsZero = (ctx: MinesweeperContext, ev: any): boolean => {
-  return ctx.board.list[ev.absIdx].value === 0;
+const targetTileValueIsZero = (
+  ctx: MinesweeperContext,
+  ev: MinesweeperEvents
+): boolean => {
+  return ctx.board.list[(ev as TileRevealedEvent).absIdx].value === 0;
 };
-const hiddenAdjacentZeros = (ctx: MinesweeperContext, ev: any): boolean => {
-  return !!ctx.board.list[ev.absIdx].adjacent.filter(
-    (tile) => tile.matches("hidden") && tile.value === 0
-  ).length;
-};
-const queueIsEmpty = (ctx: MinesweeperContext, ev: any): boolean => {
-  console.log("queueIsEmpty?", ctx.queue.length);
+const queueIsEmpty = (ctx: MinesweeperContext): boolean => {
   return ctx.queue.length === 0;
 };
-const queueHasRemainingTiles = (ctx: MinesweeperContext, ev: any): boolean => {
+const queueHasRemainingTiles = (ctx: MinesweeperContext): boolean => {
   return ctx.queue.length > 0;
 };
 // If value === adjacent flags && there are hidden adjacent
 // tiles besides the flagged one
 const eligibleForAdjacentReveal = (
   ctx: MinesweeperContext,
-  ev: any
+  ev: MinesweeperEvents
 ): boolean => {
-  const tile = ctx.board.list[ev.absIdx];
+  const tile = ctx.board.list[(ev as RevealAdjacentEvent).absIdx];
   const adjFlags = tile.adjacent.filter((t) => t.matches("flagged")).length;
   const possibileMines = !!tile.adjacent.filter((t) => t.matches("hidden"))
     .length;
 
   return tile.matches("revealed") && tile.value === adjFlags && possibileMines;
 };
-const sendRevealAdjacent = pure((ctx: MinesweeperContext, ev) => {
-  // @ts-ignore
-  return ctx.board.list[ev.absIdx].adjacent
-    .filter((t) => t.matches("hidden"))
-    .map((t) => {
-      return send("REVEAL", { to: t.actor });
-    });
-});
+const sendRevealAdjacent = pure<MinesweeperContext, MinesweeperEvents>(
+  (ctx, ev) => {
+    return ctx.board.list[(ev as RevealAdjacentEvent).absIdx].adjacent
+      .filter((t) => t.matches("hidden"))
+      .map((t) => {
+        return send("REVEAL", { to: t.actor });
+      });
+  }
+);
 
-export const minesweeperMachine = Machine<MinesweeperContext>(
+export const minesweeperMachine = Machine<
+  MinesweeperContext,
+  MinesweeperSchema,
+  MinesweeperEvents
+>(
   {
     id: "minesweeper",
     initial: "idle",
@@ -413,13 +396,82 @@ export const minesweeperMachine = Machine<MinesweeperContext>(
       allNonMineTilesRevealed,
       targetTileValueIsNonZero,
       targetTileValueIsZero,
-      hiddenAdjacentZeros,
       queueIsEmpty,
       queueHasRemainingTiles,
       eligibleForAdjacentReveal,
     },
   }
 );
+
+type ConfigureEvent = {
+  type: "CONFIGURE";
+  config: BoardConfig;
+  testMines?: number[];
+};
+
+type FlagEvent = { type: "FLAG"; absIdx: number };
+type UnflagEvent = { type: "UNFLAG"; absIdx: number };
+type RevealEvent = { type: "REVEAL"; absIdx: number };
+type RevealAdjacentEvent = { type: "REVEAL_ADJACENT"; absIdx: number };
+type TileRevealedEvent = { type: "TILE_REVEALED"; absIdx: number };
+type TileNotRevealedEvent = { type: "TILE_NOT_REVEALED"; absIdx: number };
+
+export type MinesweeperEvents =
+  | ConfigureEvent
+  | FlagEvent
+  | UnflagEvent
+  | RevealEvent
+  | RevealAdjacentEvent
+  | TileRevealedEvent
+  | TileNotRevealedEvent;
+export interface MinesweeperSchema {
+  states: {
+    idle: {};
+    ready: {};
+    playing: {
+      initial: "idle";
+      states: {
+        idle: {};
+        revealing: {};
+        revealingRecursively: {
+          initial: "revealSent";
+          states: {
+            revealSent: {};
+            unqueued: {};
+          };
+        };
+        revealingAdjacent: {};
+      };
+    };
+    ended: {
+      states: {
+        won: {};
+        lost: {};
+      };
+    };
+  };
+}
+
+export interface MinesweeperContext {
+  config: BoardConfig;
+  startDateTime: Date | null;
+  endDateTime: Date | null;
+  board: Board;
+  queue: number[];
+  testMines: number[];
+}
+export interface BoardConfig {
+  rows: number;
+  cols: number;
+  mines: number;
+}
+
+export type BoardList = Tile[];
+export type BoardMatrix = Tile[][];
+export interface Board {
+  list: BoardList;
+  matrix: BoardMatrix;
+}
 
 // from: https://stackoverflow.com/a/2450976/3622350
 function shuffle<T>(array: T[]): T[] {

@@ -28,19 +28,6 @@ export class Tile {
   }
 }
 
-// export function getTileProp(tile: Tile, prop: string) {
-//   const ctx = tile.actor.state.context;
-//   if (ctx.hasOwnProperty(prop)) return ctx[prop];
-// }
-
-// export function getTileValue(tile: Tile) {
-//   return tile.adjacent.filter((t) => getTileProp(t, "hasMine")).length;
-// }
-
-// export function tileStateMatches(tile: Tile, match: string): boolean {
-//   return tile.actor.state.matches(match);
-// }
-
 interface TileContext {
   hasMine: boolean;
   absIdx: number;
@@ -80,8 +67,7 @@ export const tileMachine = Machine<TileContext, TileSchema, TileEvent>({
       },
     },
     revealed: {
-      // type: "final",
-      entry: pure((ctx: TileContext, ev: TileEvent) => {
+      entry: pure((ctx: TileContext, _ev: TileEvent) => {
         return sendParent({
           type: "TILE_REVEALED",
           absIdx: ctx.absIdx,
@@ -89,15 +75,10 @@ export const tileMachine = Machine<TileContext, TileSchema, TileEvent>({
       }),
     },
   },
-  // @ts-ignore
   on: {
-    // @ts-ignore
     REVEAL: {
-      // @ts-ignore
-      actions: pure((ctx: TileContext, ev: TileEvent) => {
-        return sendParent({
-          type: "TILE_NOT_REVEALED",
-        });
+      actions: sendParent({
+        type: "TILE_NOT_REVEALED",
       }),
     },
   },

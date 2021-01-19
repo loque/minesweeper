@@ -2,6 +2,8 @@ import { interpret } from "xstate";
 import {
   minesweeperMachine,
   MinesweeperContext,
+  MinesweeperSchema,
+  MinesweeperEvents,
   BoardMatrix,
 } from "./Minesweeper.js";
 import { Tile } from "./Tile.js";
@@ -56,38 +58,40 @@ function current(str: string, shouldColor: boolean) {
   return str;
 }
 
-const service = interpret<MinesweeperContext>(minesweeperMachine).onTransition(
-  (state) => {
-    const { board, config, startDateTime, endDateTime, queue } = state.context;
-    console.log("");
-    console.log(`[${state.toStrings().join(", ")}]`);
-    console.log("Event:", state.event);
-    console.log("Q:", queue);
+const service = interpret<
+  MinesweeperContext,
+  MinesweeperSchema,
+  MinesweeperEvents
+>(minesweeperMachine).onTransition((state) => {
+  const { board, config, startDateTime, endDateTime, queue } = state.context;
+  console.log("");
+  console.log(`[${state.toStrings().join(", ")}]`);
+  console.log("Event:", state.event);
+  console.log("Q:", queue);
+
+  if (state.matches("idle")) {
+    console.log("config:", config);
+  }
+
+  if (state.matches("ready")) {
+    log(board.matrix, LogMode.displayIndexes);
+  }
+
+  if (state.matches("playing")) {
+    console.log("startDateTime:", startDateTime);
     // @ts-ignore
     const targetTile = queue[0] || state.event?.absIdx;
-
-    if (state.matches("idle")) {
-      console.log("config:", config);
-    }
-
-    if (state.matches("ready")) {
-      log(board.matrix, LogMode.displayIndexes);
-    }
-
-    if (state.matches("playing")) {
-      // console.log("startDateTime:", startDateTime);
-      log(board.matrix, null, targetTile);
-    }
-
-    if (state.matches("ended")) {
-      console.log("endDateTime:", endDateTime);
-      log(board.matrix);
-      let result: any = state.toStrings();
-      result = result[result.length - 1].toUpperCase();
-      console.log(`USER ${result}!!!!!!`);
-    }
+    log(board.matrix, null, targetTile);
   }
-);
+
+  if (state.matches("ended")) {
+    console.log("endDateTime:", endDateTime);
+    log(board.matrix);
+    let result: any = state.toStrings();
+    result = result[result.length - 1].toUpperCase();
+    console.log(`USER ${result}!!!!!!`);
+  }
+});
 
 let testMines = [];
 
