@@ -24,20 +24,19 @@ export default function Game() {
   const config = useConfig();
 
   const location = useLocation();
-  // const prevLocationKey = useRef(location.key);
+  const prevLocationKey = useRef(location.key);
 
-  const game = useGame(config.level);
+  const [game, reset] = useGame(config.level);
 
   const boardRef = useRef();
   const [tileSize, setTileSize] = useState(0);
 
-  // TODO: implement reset
-  // useEffect(() => {
-  //   if (prevLocationKey.current !== location.key) {
-  //     prevLocationKey.current = location.key;
-  //     game.reset();
-  //   }
-  // }, [game, prevLocationKey, location.key]);
+  useEffect(() => {
+    if (prevLocationKey.current !== location.key) {
+      prevLocationKey.current = location.key;
+      reset();
+    }
+  }, [reset, prevLocationKey, location.key]);
 
   // const result = buildResult(game, config);
   // useEffect(() => {
@@ -66,7 +65,7 @@ export default function Game() {
     const { rowIdx, colIdx } = ctx;
     const targetTile = game.board[rowIdx]?.[colIdx];
     if (targetTile) {
-      game.actions.revealTile(targetTile.absIdx);
+      game.reveal(targetTile.absIdx);
     }
   }
 
@@ -74,7 +73,7 @@ export default function Game() {
     const { rowIdx, colIdx } = ctx;
     const targetTile = game.board[rowIdx]?.[colIdx];
     if (targetTile) {
-      game.actions.revealAdjacentTiles(targetTile.absIdx);
+      game.revealAdjacent(targetTile.absIdx);
     }
   }
 
@@ -102,15 +101,15 @@ export default function Game() {
   function tileContextMenu(tile) {
     return (e) => {
       e.preventDefault();
-      if (tile.matches("flagged")) {
-        game.actions.unflagTile(tile.absIdx);
-      } else if (tile.matches("hidden")) {
-        game.actions.flagTile(tile.absIdx);
+      if (tile.matches("FLAGGED")) {
+        game.unflag(tile.absIdx);
+      } else if (tile.matches("HIDDEN")) {
+        game.flag(tile.absIdx);
       }
     };
   }
 
-  const tilesCNs = ["board-tile", [game.matches("ended"), "disabled"]];
+  const tilesCNs = ["board-tile", [game.matches("ENDED"), "disabled"]];
   return (
     <div className="view">
       <div className="container">
@@ -119,18 +118,18 @@ export default function Game() {
 
         <div
           ref={boardRef}
-          {...bCN("board", [game.matches("ended"), "disabled"])}
+          {...bCN("board", [game.matches("ENDED"), "disabled"])}
         >
           {game.board &&
             game.board.map((row, rowIdx) => {
               return (
                 <div className="board-row" key={rowIdx}>
-                  {row.map((tile, colIdx) => {
+                  {row.map((tile) => {
                     const tileCNs = [
                       ...tilesCNs,
-                      [tile.matches("hidden"), "hidden"],
-                      [tile.matches("flagged"), "flagged"],
-                      [tile.matches("revealed"), "revealed"],
+                      [tile.matches("HIDDEN"), "hidden"],
+                      [tile.matches("FLAGGED"), "flagged"],
+                      [tile.matches("REVEALED"), "revealed"],
                       [tile.hasMine, "hasMine"],
                       color[Math.min(tile.value, color.length - 1)],
                       [tile.value === 0, "empty"],
@@ -151,14 +150,14 @@ export default function Game() {
                         onContextMenu={tileContextMenu(tile)}
                       >
                         <div className="board-tile-content">
-                          {tile.matches("revealed") &&
+                          {tile.matches("REVEALED") &&
                             !tile.hasMine &&
                             !!tile.value &&
                             tile.value}
-                          {tile.matches("flagged") && (
+                          {tile.matches("FLAGGED") && (
                             <FlagIcon className="red" />
                           )}
-                          {tile.matches("revealed") && tile.hasMine && (
+                          {tile.matches("REVEALED") && tile.hasMine && (
                             <MineIcon />
                           )}
                         </div>
@@ -169,7 +168,7 @@ export default function Game() {
               );
             })}
         </div>
-        {game.matches("ended") && <EndGame game={game} />}
+        {game.matches("ENDED") && <EndGame game={game} />}
       </div>
     </div>
   );
@@ -215,12 +214,12 @@ function EndGame({ game }) {
   return (
     <div className="endgame">
       <div className="endgame-modal">
-        {game.matches("ended.won") && (
+        {game.matches("ENDED") && game.result === "WON" && (
           <div className="endgame-result icon-text">
             <HappyIcon className="yellow" /> You won!
           </div>
         )}
-        {game.matches("ended.lost") && (
+        {game.matches("ENDED") && game.result === "LOST" && (
           <div className="endgame-result icon-text">
             <SadIcon className="red" /> You Lost!
           </div>

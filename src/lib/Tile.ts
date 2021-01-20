@@ -61,4 +61,14 @@ export default class Tile {
     }
     return false;
   }
+
+  log() {
+    return {
+      state: this.#state,
+      absIdx: this.#absIdx,
+      rowIdx: this.#rowIdx,
+      colIdx: this.#colIdx,
+      hasMine: this.hasMine,
+    };
+  }
 }

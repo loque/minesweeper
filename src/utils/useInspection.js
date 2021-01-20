@@ -9,17 +9,9 @@ export function useInspection(
   onInspectOneEnd,
   onInspectMultiEnd
 ) {
-  // const [state, dispatch] = useReducer(
-  //   inspectionReducer,
-  //   inspectionInitialState
-  // );
-
   const [state, send] = useMachine(inspectMachine, {
-    devTools: true,
     actions: { onInspectOneEnd, onInspectMultiEnd },
   });
-
-  // const prevState = useRef({ ...state });
 
   // Calculate the corresponding `rowIdx` and `colIdx` of the tile under
   // the mouse.
@@ -35,16 +27,11 @@ export function useInspection(
         const mouseY = ev.pageY - absY;
 
         if (mouseX < 0 || mouseY < 0) {
-          // dispatch({ type: "SET_TILE_UNDER_MOUSE", tilePos: null });
           send({ type: "SET_POSITION", rowIdx: null, colIdx: null });
         } else {
           const currTileSize = tileSize + tileMargin * 2;
           const colIdx = Math.floor(mouseX / currTileSize);
           const rowIdx = Math.floor(mouseY / currTileSize);
-          // dispatch({
-          //   type: "SET_TILE_UNDER_MOUSE",
-          //   tilePos: { rowIdx, colIdx },
-          // });
           send({ type: "SET_POSITION", rowIdx, colIdx });
         }
       };
@@ -60,10 +47,8 @@ export function useInspection(
     function activateDetection(e) {
       e.preventDefault();
       if (e.button === 0) {
-        // dispatch({ type: "INSPECT_ONE_START" });
         send({ type: "INSPECT_ONE_START" });
       } else if (e.button === 1) {
-        // dispatch({ type: "INSPECT_MULTI_START" });
         send({ type: "INSPECT_MULTI_START" });
       }
 
@@ -77,10 +62,8 @@ export function useInspection(
     function deactivateDetection(e) {
       e.preventDefault();
       if (e.button === 0) {
-        // dispatch({ type: "INSPECT_ONE_END" });
         send({ type: "INSPECT_ONE_END" });
       } else if (e.button === 1) {
-        // dispatch({ type: "INSPECT_MULTI_END" });
         send({ type: "INSPECT_MULTI_END" });
       }
     }
@@ -108,11 +91,6 @@ export function useInspection(
 
   return { matches: state.matches, context: state.context };
 }
-
-// function tilePos(state) {
-//   if (state.tilePos === null) return null;
-//   return state.tilePos.rowIdx + ":" + state.tilePos.colIdx;
-// }
 
 const inspectMachine = Machine(
   {
@@ -164,8 +142,8 @@ const inspectMachine = Machine(
   {
     actions: {
       setPosition: assign({
-        rowIdx: (ctx, ev) => ev.rowIdx,
-        colIdx: (ctx, ev) => ev.colIdx,
+        rowIdx: (_, ev) => ev.rowIdx,
+        colIdx: (_, ev) => ev.colIdx,
       }),
       resetPosition: assign({
         rowIdx: null,
@@ -174,47 +152,3 @@ const inspectMachine = Machine(
     },
   }
 );
-
-// const inspectionInitialState = {
-//   value: "idle", // idle|inspectingOne|inspectingMulti
-//   tilePos: null,
-// };
-
-// function inspectionReducer(state, action) {
-//   switch (state.value) {
-//     case "idle":
-//       switch (action.type) {
-//         case "INSPECT_ONE_START":
-//           return { ...state, value: "inspectingOne" };
-//         case "INSPECT_MULTI_START":
-//           return { ...state, value: "inspectingMulti" };
-
-//         default:
-//           break;
-//       }
-//       break;
-
-//     case "inspectingOne":
-//       switch (action.type) {
-//         case "INSPECT_ONE_END":
-//           return { ...inspectionInitialState };
-//         case "SET_TILE_UNDER_MOUSE":
-//           return { ...state, tilePos: action.tilePos };
-//         default:
-//           break;
-//       }
-//       break;
-//     case "inspectingMulti":
-//       switch (action.type) {
-//         case "INSPECT_MULTI_END":
-//           return { ...inspectionInitialState };
-//         case "SET_TILE_UNDER_MOUSE":
-//           return { ...state, tilePos: action.tilePos };
-//         default:
-//           break;
-//       }
-//       break;
-//     default:
-//       break;
-//   }
-// }

@@ -1,30 +1,41 @@
 import Tile, { TileState } from "./Tile";
 
+enum GameResult {
+  NONE = "NONE",
+  WON = "WON",
+  LOST = "LOST",
+}
+
 enum GameState {
   IDLE = "IDLE",
   PLAYING = "PLAYING",
   ENDED = "ENDED",
 }
-export interface BoardConfig {
+interface BoardConfig {
   rows: number;
   cols: number;
   mines: number;
 }
 
-export type BoardList = Tile[];
-export type BoardMatrix = Tile[][];
-export interface Board {
+type BoardList = Tile[];
+type BoardMatrix = Tile[][];
+interface Board {
   list: BoardList;
   matrix: BoardMatrix;
 }
 
+type Subscription = (game: Game) => void;
+type Cluster = Set<number>;
+
 export default class Game {
   #state: GameState = GameState.IDLE;
+  #result: GameResult = GameResult.NONE;
   #config: BoardConfig;
   #board: Board = { list: [], matrix: [] };
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
   #minesPlaced: boolean = false;
+  #subscriptions: Subscription[] = [];
 
   constructor(config: BoardConfig) {
     this.#config = config;
@@ -32,7 +43,7 @@ export default class Game {
     this.setAdjacent();
   }
 
-  get matrix(): BoardMatrix {
+  get board(): BoardMatrix {
     return this.#board.matrix;
   }
 
@@ -61,69 +72,100 @@ export default class Game {
     return this.#state === state;
   }
 
-  flag(absIdx: number) {
-    if (this.matches(GameState.ENDED)) return;
-    this.#board.list[absIdx].flag();
+  get result() {
+    return this.#result;
   }
 
-  unflag(absIdx: number) {
-    if (this.matches(GameState.ENDED)) return;
-    this.#board.list[absIdx].unflag();
+  flag(absIdx: number): boolean {
+    if (this.matches(GameState.ENDED)) return this.res(false);
+    return this.res(this.#board.list[absIdx].flag());
   }
 
-  reveal(absIdx: number, endIfMineIsFound = true) {
-    if (this.matches(GameState.ENDED)) return;
+  unflag(absIdx: number): boolean {
+    if (this.matches(GameState.ENDED)) return this.res(false);
+    return this.res(this.#board.list[absIdx].unflag());
+  }
+
+  reveal(absIdx: number, endIfMineIsFound = true): boolean {
+    if (this.matches(GameState.ENDED)) return this.res(false);
 
     // We place mines just before the first move because
     // the first move should never be a mine
     if (this.placeMines(absIdx)) this.gameStart();
 
     const tile = this.#board.list[absIdx];
-    tile.reveal();
+    if (!tile.reveal()) return this.res(false);
 
     if (tile.hasMine && endIfMineIsFound) return this.gameLost();
+    if (this.allNonMineTilesRevealed()) return this.gameWon();
+
+    const cluster = this.getCluster(tile);
+
+    for (const adjAbsIdx of cluster.values()) {
+      this.#board.list[adjAbsIdx].reveal();
+    }
 
     if (this.allNonMineTilesRevealed()) return this.gameWon();
 
-    if (tile.adjacent.filter((tl: Tile) => tile.hasMine).length === 0) {
-      // If all adjacent tiles do not have a mine, then show them all
-      const adjTilesHidden = tile.adjacent.filter((tl) =>
-        tile.matches(TileState.HIDDEN)
-      );
-      for (const adjTile of adjTilesHidden) {
-        this.reveal(adjTile.absIdx, false);
-      }
-    }
+    return this.res(true);
   }
 
-  revealAdjacent(absIdx: number) {
-    if (this.matches(GameState.ENDED)) return;
+  private getCluster(tile: Tile, cluster: Cluster = new Set()): Cluster {
+    if (tile.value === 0) {
+      // If all adjacent tiles do not have a mine, then collect them
+      const adjHidden = tile.adjacent.filter((tl) =>
+        tl.matches(TileState.HIDDEN)
+      );
+      for (const adj of adjHidden) {
+        if (cluster.has(adj.absIdx)) continue;
+
+        cluster.add(adj.absIdx);
+        this.getCluster(adj, cluster);
+      }
+    }
+    return cluster;
+  }
+
+  revealAdjacent(absIdx: number): boolean {
+    if (this.matches(GameState.ENDED)) return this.res(false);
 
     const tile = this.#board.list[absIdx];
 
-    if (this.isEligibleForAdjacentReveal(tile)) {
-      const adjacentHidden = tile.adjacent.filter((tl) =>
-        tile.matches(TileState.HIDDEN)
-      );
+    if (!this.isEligibleForAdjacentReveal(tile)) return this.res(false);
 
-      adjacentHidden.forEach((t) => t.reveal());
+    const adjacentHidden = tile.adjacent.filter((tl) =>
+      tl.matches(TileState.HIDDEN)
+    );
 
-      if (!!adjacentHidden.find((t) => t.hasMine)) {
-        return this.gameLost();
-      }
+    const someAdjacentRevealed = adjacentHidden
+      .map((t) => t.reveal())
+      .some((res) => res);
 
-      if (this.allNonMineTilesRevealed()) {
-        return this.gameWon();
-      }
+    if (!!adjacentHidden.find((t) => t.hasMine)) {
+      return this.gameLost();
     }
+
+    if (this.allNonMineTilesRevealed()) {
+      return this.gameWon();
+    }
+
+    return this.res(someAdjacentRevealed);
+  }
+
+  subscribe(callback: Subscription) {
+    const subs = this.#subscriptions;
+    subs.push(callback);
+    const callbackIdx = subs.length - 1;
+    return function unsuscribe() {
+      subs.splice(callbackIdx, 1);
+    };
   }
 
   private isEligibleForAdjacentReveal(tile: Tile): boolean {
-    const adjFlags = tile.adjacent.filter((tl) =>
-      tile.matches(TileState.FLAGGED)
-    ).length;
+    const adjFlags = tile.adjacent.filter((tl) => tl.matches(TileState.FLAGGED))
+      .length;
     const possibileMines = !!tile.adjacent.filter((tl) =>
-      tile.matches(TileState.HIDDEN)
+      tl.matches(TileState.HIDDEN)
     ).length;
 
     return (
@@ -200,16 +242,26 @@ export default class Game {
   private gameStart() {
     this.#startDateTime = new Date();
     this.#state = GameState.PLAYING;
+    return true;
   }
 
   private gameLost() {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
+    this.#result = GameResult.LOST;
+    return true;
   }
 
   private gameWon() {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
+    this.#result = GameResult.WON;
+    return true;
+  }
+
+  private res(result: boolean): boolean {
+    if (result) this.#subscriptions.forEach((sub) => sub(this));
+    return result;
   }
 }
 
