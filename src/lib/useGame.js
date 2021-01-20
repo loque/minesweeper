@@ -1,19 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMachine } from "@xstate/react";
-import { minesweeperMachine } from "./Minesweeper";
+import Game from "./Minesweeper";
 
 export const configs = [{ rows: 10, cols: 10, mines: 11 }];
 
 export function useGame(level) {
   const config = configs[level] || configs[configs.length - 1];
-  const [state, send] = useMachine(minesweeperMachine);
-  const [output, setOutput] = useState({ matches: () => false });
-
-  useEffect(() => {
-    if (state.matches("idle")) {
-      send("CONFIGURE", { config });
-    }
-  }, [config, send, state]);
+  const game = useRef(new Game(config));
 
   useEffect(() => {
     if (

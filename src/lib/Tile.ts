@@ -1,96 +1,49 @@
-import { Machine, sendParent, actions } from "xstate";
-const { pure } = actions;
+export enum TileState {
+  HIDDEN = "HIDDEN",
+  FLAGGED = "FLAGGED",
+  REVEALED = "REVEALED",
+}
 
-export class Tile {
-  actor: any;
+export default class Tile {
+  #state: TileState = TileState.HIDDEN;
   adjacent: Tile[] = [];
+  hasMine: boolean = false;
 
-  setCtx(prop: string, value: any) {
-    const ctx = this.actor.state.context;
-    if (ctx.hasOwnProperty(prop)) return (ctx[prop] = value);
-  }
-
-  get hasMine() {
-    return this.actor.state.context.hasMine;
-  }
-
-  get absIdx() {
-    return this.actor.state.context.absIdx;
-  }
-
-  get rowIdx() {
-    return this.actor.state.context.rowIdx;
-  }
-
-  get colIdx() {
-    return this.actor.state.context.colIdx;
-  }
+  constructor(
+    readonly absIdx: number,
+    readonly rowIdx: number,
+    readonly colIdx: number
+  ) {}
 
   get value() {
     return this.adjacent.filter((t) => t.hasMine).length;
   }
 
-  get states() {
-    return this.actor.state.toStrings().join(", ");
+  get state() {
+    return this.#state;
   }
 
-  matches(match: string): boolean {
-    return this.actor.state.matches(match);
+  flag(): boolean {
+    if (this.#state === TileState.HIDDEN) {
+      this.#state = TileState.FLAGGED;
+      return true;
+    }
+    return false;
+  }
+
+  unflag(): boolean {
+    if (this.#state === TileState.FLAGGED) {
+      this.#state = TileState.HIDDEN;
+      return true;
+    }
+    return false;
+  }
+
+  reveal(): boolean {
+    if (this.#state === TileState.HIDDEN) {
+      this.#state = TileState.REVEALED;
+      return true;
+    }
+    return false;
   }
 }
-
-interface TileContext {
-  hasMine: boolean;
-  absIdx: number;
-  rowIdx: number;
-  colIdx: number;
-}
-
-interface TileSchema {
-  states: {
-    hidden: {};
-    flagged: {};
-    revealed: {};
-  };
-}
-
-type TileEvent = { type: "FLAG" } | { type: "UNFLAG" } | { type: "REVEAL" };
-
-export const tileMachine = Machine<TileContext, TileSchema, TileEvent>({
-  id: "tile",
-  initial: "hidden",
-  context: {
-    hasMine: false,
-    absIdx: 0,
-    rowIdx: 0,
-    colIdx: 0,
-  },
-  states: {
-    hidden: {
-      on: {
-        FLAG: "flagged",
-        REVEAL: "revealed",
-      },
-    },
-    flagged: {
-      on: {
-        UNFLAG: "hidden",
-      },
-    },
-    revealed: {
-      entry: pure((ctx: TileContext, _ev: TileEvent) => {
-        return sendParent({
-          type: "TILE_REVEALED",
-          absIdx: ctx.absIdx,
-        });
-      }),
-    },
-  },
-  on: {
-    REVEAL: {
-      actions: sendParent({
-        type: "TILE_NOT_REVEALED",
-      }),
-    },
-  },
-});
