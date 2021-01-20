@@ -6,21 +6,36 @@ export enum TileState {
 
 export default class Tile {
   #state: TileState = TileState.HIDDEN;
-  adjacent: Tile[] = [];
+  #absIdx: number = 0;
+  #rowIdx: number = 0;
+  #colIdx: number = 0;
   hasMine: boolean = false;
+  adjacent: Tile[] = [];
 
-  constructor(
-    readonly absIdx: number,
-    readonly rowIdx: number,
-    readonly colIdx: number
-  ) {}
+  constructor(absIdx: number, rowIdx: number, colIdx: number) {
+    this.#absIdx = absIdx;
+    this.#rowIdx = rowIdx;
+    this.#colIdx = colIdx;
+  }
 
   get value() {
     return this.adjacent.filter((t) => t.hasMine).length;
   }
 
-  get state() {
-    return this.#state;
+  get absIdx() {
+    return this.#absIdx;
+  }
+
+  get rowIdx() {
+    return this.#rowIdx;
+  }
+
+  get colIdx() {
+    return this.#colIdx;
+  }
+
+  matches(state: TileState) {
+    return this.#state === state;
   }
 
   flag(): boolean {
