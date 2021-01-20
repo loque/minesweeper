@@ -183,7 +183,7 @@ function bCN(...cNs) {
     .map((cn) => {
       if (Array.isArray(cn)) {
         const value = cn.pop();
-        if (!cn.every((cond) => cond === true)) return false;
+        if (cn.some((cond) => cond === false)) return false;
         return value;
       }
       return cn;
