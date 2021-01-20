@@ -124,51 +124,66 @@ export default function Game() {
             game.board.map((row, rowIdx) => {
               return (
                 <div className="board-row" key={rowIdx}>
-                  {row.map((tile) => {
-                    const tileCNs = [
-                      ...tilesCNs,
-                      [tile.matches("HIDDEN"), "hidden"],
-                      [tile.matches("FLAGGED"), "flagged"],
-                      [tile.matches("REVEALED"), "revealed"],
-                      [tile.hasMine, "hasMine"],
-                      color[Math.min(tile.value, color.length - 1)],
-                      [tile.value === 0, "empty"],
-                      [tile.inspecting, "inspecting"],
-                      [inspectedTiles.includes(tile.absIdx), "inspecting"],
-                    ];
-
-                    return (
-                      <div
-                        key={tile.absIdx}
-                        {...bCN(tileCNs)}
-                        style={{
-                          width: tileSize + "px",
-                          height: tileSize + "px",
-                          margin: tileMargin + "px",
-                          fontSize: tileMargin + "em",
-                        }}
-                        onContextMenu={tileContextMenu(tile)}
-                      >
-                        <div className="board-tile-content">
-                          {tile.matches("REVEALED") &&
-                            !tile.hasMine &&
-                            !!tile.value &&
-                            tile.value}
-                          {tile.matches("FLAGGED") && (
-                            <FlagIcon className="red" />
-                          )}
-                          {tile.matches("REVEALED") && tile.hasMine && (
-                            <MineIcon />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {row.map((tile) => (
+                    <Tile
+                      key={tile.absIdx}
+                      tile={tile}
+                      tilesCNs={tileCNs}
+                      inspectedTiles={inspectedTiles}
+                    />
+                  ))}
                 </div>
               );
             })}
         </div>
         {game.matches("ENDED") && <EndGame game={game} />}
+      </div>
+    </div>
+  );
+}
+
+// function buildResult(game, config) {
+//   return {
+//     startTime: game.startDateTime,
+//     endTime: game.endDateTime,
+//     level: config.level,
+//     gameTime: game.gameTime,
+//     result: game.result,
+//     name: config.name,
+//   };
+// }
+
+function Tile({ tile, tilesCNs, inspectedTiles }) {
+  const tileCNs = [
+    ...tilesCNs,
+    [tile.matches("HIDDEN"), "hidden"],
+    [tile.matches("FLAGGED"), "flagged"],
+    [tile.matches("REVEALED"), "revealed"],
+    [tile.hasMine, "hasMine"],
+    color[Math.min(tile.value, color.length - 1)],
+    [tile.value === 0, "empty"],
+    [tile.inspecting, "inspecting"],
+    [inspectedTiles.includes(tile.absIdx), "inspecting"],
+  ];
+  return (
+    <div
+      key={tile.absIdx}
+      {...bCN(tileCNs)}
+      style={{
+        width: tileSize + "px",
+        height: tileSize + "px",
+        margin: tileMargin + "px",
+        fontSize: tileMargin + "em",
+      }}
+      onContextMenu={tileContextMenu(tile)}
+    >
+      <div className="board-tile-content">
+        {tile.matches("REVEALED") &&
+          !tile.hasMine &&
+          !!tile.value &&
+          tile.value}
+        {tile.matches("FLAGGED") && <FlagIcon className="red" />}
+        {tile.matches("REVEALED") && tile.hasMine && <MineIcon />}
       </div>
     </div>
   );
@@ -192,17 +207,6 @@ function bCN(...cNs) {
     .join(" ");
   return { className };
 }
-
-// function buildResult(game, config) {
-//   return {
-//     startTime: game.startDateTime,
-//     endTime: game.endDateTime,
-//     level: config.level,
-//     gameTime: game.gameTime,
-//     result: game.result,
-//     name: config.name,
-//   };
-// }
 
 function EndGame({ game }) {
   const autofocus = useRef();
