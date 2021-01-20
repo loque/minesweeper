@@ -1,6 +1,6 @@
 import "./Results.scss";
-import { useConfig } from "./lib/config";
-import Header from "./components/Header";
+import { useConfig } from "../lib/config";
+import Header from "../components/Header";
 import { Link } from "react-router-dom";
 import { RiRefreshLine as ReloadIcon } from "react-icons/ri";
 

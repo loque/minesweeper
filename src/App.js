@@ -1,24 +1,27 @@
+import { Provider as JotaiProvider } from "jotai";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import "./App.scss";
-import Setup from "./Setup";
-import Game from "./Game";
-import Results from "./Results";
+import Game from "./pages/Game";
+import Results from "./pages/Results";
+import Setup from "./pages/Setup";
 
 function App() {
   return (
-    <Router>
-      <Switch>
-        <Route path="/game">
-          <Game />
-        </Route>
-        <Route path="/results">
-          <Results />
-        </Route>
-        <Route path={["/setup", "/"]}>
-          <Setup />
-        </Route>
-      </Switch>
-    </Router>
+    <JotaiProvider>
+      <Router>
+        <Switch>
+          <Route path="/game">
+            <Game />
+          </Route>
+          <Route path="/results">
+            <Results />
+          </Route>
+          <Route path={["/setup", "/"]}>
+            <Setup />
+          </Route>
+        </Switch>
+      </Router>
+    </JotaiProvider>
   );
 }
 

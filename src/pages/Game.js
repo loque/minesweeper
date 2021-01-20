@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
-import { useGame } from "./lib/useGame";
-import { useConfig } from "./lib/config";
-import { useInspection } from "./utils/useInspection";
-import { useResize } from "./utils/useResize";
+import { useGame } from "../lib/useGame";
+import { useConfig } from "../lib/config";
+import { useInspection } from "../utils/useInspection";
+import { useResize } from "../utils/useResize";
 
 import {
   RiFlag2Fill as FlagIcon,
@@ -15,8 +15,8 @@ import {
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
 
-import Header from "./components/Header";
-import StatusBar from "./components/StatusBar";
+import Header from "../components/Header";
+import StatusBar from "../components/StatusBar";
 
 const tileMargin = 1.5;
 
@@ -77,26 +77,33 @@ export default function Game() {
     }
   }
 
-  const inspect = useInspection(
+  useInspection(
     boardRef,
     tileSize,
     tileMargin,
     onInspectOneEnd,
     onInspectMultiEnd
   );
+  // const inspect = useInspection(
+  //   boardRef,
+  //   tileSize,
+  //   tileMargin,
+  //   onInspectOneEnd,
+  //   onInspectMultiEnd
+  // );
 
   const inspectedTiles = [];
 
-  if (!inspect.matches("idle") && typeof inspect.context.rowIdx === "number") {
-    const { rowIdx, colIdx } = inspect.context;
-    const centerTile = game?.board[rowIdx]?.[colIdx];
-    if (centerTile) {
-      inspectedTiles.push(centerTile.absIdx);
-      if (inspect.matches("inspectingMulti")) {
-        centerTile.adjacent.forEach((tile) => inspectedTiles.push(tile.absIdx));
-      }
-    }
-  }
+  // if (!inspect.matches("idle") && typeof inspect.context.rowIdx === "number") {
+  //   const { rowIdx, colIdx } = inspect.context;
+  //   const centerTile = game?.board[rowIdx]?.[colIdx];
+  //   if (centerTile) {
+  //     inspectedTiles.push(centerTile.absIdx);
+  //     if (inspect.matches("inspectingMulti")) {
+  //       centerTile.adjacent.forEach((tile) => inspectedTiles.push(tile.absIdx));
+  //     }
+  //   }
+  // }
 
   function tileContextMenu(tile) {
     return (e) => {
@@ -128,8 +135,10 @@ export default function Game() {
                     <Tile
                       key={tile.absIdx}
                       tile={tile}
-                      tilesCNs={tileCNs}
+                      tilesCNs={tilesCNs}
+                      tileSize={tileSize}
                       inspectedTiles={inspectedTiles}
+                      tileContextMenu={tileContextMenu}
                     />
                   ))}
                 </div>
@@ -153,7 +162,7 @@ export default function Game() {
 //   };
 // }
 
-function Tile({ tile, tilesCNs, inspectedTiles }) {
+function Tile({ tile, tilesCNs, tileSize, inspectedTiles, tileContextMenu }) {
   const tileCNs = [
     ...tilesCNs,
     [tile.matches("HIDDEN"), "hidden"],
