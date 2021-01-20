@@ -2,7 +2,8 @@ import { useMachine } from "@xstate/react";
 import { useEffect, useCallback } from "react";
 import { Machine, assign } from "xstate";
 
-export function useInspection(
+
+export default function useInspection(
   boardRef,
   tileSize,
   tileMargin,

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
-import { useGame } from "../lib/useGame";
-import { useConfig } from "../lib/config";
-import { useInspection } from "../utils/useInspection";
-import { useResize } from "../utils/useResize";
+import useGame from "../lib/useGame";
+import useConfig from "../lib/useConfig";
+import useInspection from "../utils/useInspection";
+import useResize from "../utils/useResize";
 
 import {
   RiFlag2Fill as FlagIcon,

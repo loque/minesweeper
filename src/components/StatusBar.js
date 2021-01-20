@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./StatusBar.scss";
-import { useConfig } from "../lib/config";
+import useConfig from "../lib/useConfig";
 import { msToMS } from "../lib/time";
 import {
   RiUser3Fill as UserIcon,

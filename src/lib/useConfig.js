@@ -10,9 +10,9 @@ export function ConfigProvider({ children }) {
   );
 }
 
-export const useConfig = () => {
+export default function useConfig() {
   return useContext(ConfigContext);
-};
+}
 
 const initialState = {
   level: localStorage.getItem("level") || 0,

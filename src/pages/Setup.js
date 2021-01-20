@@ -1,7 +1,7 @@
 import "./Setup.scss";
 import { useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
-import { useConfig } from "../lib/config";
+import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
 import {
   RiUser3Fill as UserIcon,

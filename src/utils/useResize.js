@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function useResize(ref, onResize) {
+export default function useResize(ref, onResize) {
   useEffect(() => {
     const currRef = ref.current;
 

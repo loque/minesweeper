@@ -3,7 +3,7 @@ import Game from "./Minesweeper";
 
 export const configs = [{ rows: 10, cols: 10, mines: 20 }];
 
-export function useGame(level) {
+export default function useGame(level) {
   const config = configs[level] || configs[configs.length - 1];
   const game = useRef();
   const [_, setTick] = useState(0); // eslint-disable-line no-unused-vars
