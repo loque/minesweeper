@@ -1,9 +1,8 @@
 import "./Setup.scss";
 import { useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
-import { useConfig } from "./lib/config";
-// import { DifficultyLevel } from "./lib/Game";
-import Header from "./components/Header";
+import { useConfig } from "../lib/config";
+import Header from "../components/Header";
 import {
   RiUser3Fill as UserIcon,
   RiFlashlightFill as DifficultyIcon,
