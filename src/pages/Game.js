@@ -2,9 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import useGame from "../lib/useGame";
+import { isEligibleForAdjacentReveal } from "../lib/Minesweeper";
 import useConfig from "../lib/useConfig";
-import useInspection from "../utils/useInspection";
 import useResize from "../utils/useResize";
+import {
+  atom,
+  useSetRecoilState,
+  atomFamily,
+  useRecoilValue,
+  selector,
+} from "recoil";
 
 import {
   RiFlag2Fill as FlagIcon,
@@ -61,59 +68,86 @@ export default function Game() {
   }
   useResize(boardRef, onBoardResize);
 
-  function onInspectOneEnd(ctx) {
-    const { rowIdx, colIdx } = ctx;
-    const targetTile = game.board[rowIdx]?.[colIdx];
-    if (targetTile) {
-      game.reveal(targetTile.absIdx);
-    }
-  }
+  const updateScanState = useSetRecoilState(scanState);
+  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
-  function onInspectMultiEnd(ctx) {
-    const { rowIdx, colIdx } = ctx;
-    const targetTile = game.board[rowIdx]?.[colIdx];
-    if (targetTile) {
-      game.revealAdjacent(targetTile.absIdx);
-    }
-  }
-
-  useInspection(
-    boardRef,
-    tileSize,
-    tileMargin,
-    onInspectOneEnd,
-    onInspectMultiEnd
-  );
-  // const inspect = useInspection(
-  //   boardRef,
-  //   tileSize,
-  //   tileMargin,
-  //   onInspectOneEnd,
-  //   onInspectMultiEnd
-  // );
-
-  const inspectedTiles = [];
-
-  // if (!inspect.matches("idle") && typeof inspect.context.rowIdx === "number") {
-  //   const { rowIdx, colIdx } = inspect.context;
-  //   const centerTile = game?.board[rowIdx]?.[colIdx];
-  //   if (centerTile) {
-  //     inspectedTiles.push(centerTile.absIdx);
-  //     if (inspect.matches("inspectingMulti")) {
-  //       centerTile.adjacent.forEach((tile) => inspectedTiles.push(tile.absIdx));
-  //     }
-  //   }
-  // }
-
-  function tileContextMenu(tile) {
-    return (e) => {
-      e.preventDefault();
-      if (tile.matches("FLAGGED")) {
-        game.unflag(tile.absIdx);
-      } else if (tile.matches("HIDDEN")) {
-        game.flag(tile.absIdx);
+  useEffect(() => {
+    function activateDetection(ev) {
+      ev.preventDefault();
+      if (ev.button === 0) {
+        updateScanState(1);
+      } else if (ev.button === 1) {
+        updateScanState(2);
       }
+
+      if ([0, 1].includes(ev.button)) {
+        // Make the first detection on mousedown because if not the users would
+        // not see the detection working until they move the mouse, which is odd.
+        detectScannedTile(ev);
+      }
+    }
+
+    function deactivateDetection(e) {
+      e.preventDefault();
+      setScannedTargets([]);
+      updateScanState(0);
+    }
+
+    function detectScannedTile(ev) {
+      const bodyRect = document.body.getBoundingClientRect();
+      const boardRect = boardRef.current.getBoundingClientRect();
+
+      const absLeft = boardRect.left - bodyRect.left;
+      const absTop = boardRect.top - bodyRect.top;
+
+      // Calculate the mouse position relative to the board
+      const mouseX = ev.pageX - absLeft;
+      const mouseY = ev.pageY - absTop;
+
+      if (
+        mouseX >= 0 &&
+        mouseX < boardRect.width &&
+        mouseY >= 0 &&
+        mouseY < boardRect.height
+      ) {
+        const currTileSize = tileSize + tileMargin * 2;
+        const colIdx = Math.floor(mouseX / currTileSize);
+        const rowIdx = Math.floor(mouseY / currTileSize);
+        // console.log({ type: "SET_POSITION", rowIdx, colIdx }, 0);
+        const tile = game.board[rowIdx][colIdx];
+        const nextTargets = [tile.absIdx].concat(
+          tile.adjacent.map((tl) => tl.absIdx)
+        );
+        setScannedTargets(nextTargets);
+      }
+    }
+
+    window.addEventListener("mousedown", activateDetection);
+    window.addEventListener("mouseup", deactivateDetection);
+    return () => {
+      window.removeEventListener("mousedown", activateDetection);
+      window.removeEventListener("mouseup", deactivateDetection);
     };
+  }, [game, boardRef, tileSize, updateScanState, setScannedTargets]);
+
+  function mouseLeaveHandler() {
+    setScannedTargets([]);
+  }
+
+  function reveal(absIdx) {
+    game.reveal(absIdx);
+  }
+
+  function revealAdjacent(absIdx) {
+    game.revealAdjacent(absIdx);
+  }
+
+  function flag(absIdx) {
+    game.flag(absIdx);
+  }
+
+  function unflag(absIdx) {
+    game.unflag(absIdx);
   }
 
   const tilesCNs = ["board-tile", [game.matches("ENDED"), "disabled"]];
@@ -126,6 +160,7 @@ export default function Game() {
         <div
           ref={boardRef}
           {...bCN("board", [game.matches("ENDED"), "disabled"])}
+          onMouseLeave={mouseLeaveHandler}
         >
           {game.board &&
             game.board.map((row, rowIdx) => {
@@ -135,10 +170,12 @@ export default function Game() {
                     <Tile
                       key={tile.absIdx}
                       tile={tile}
-                      tilesCNs={tilesCNs}
-                      tileSize={tileSize}
-                      inspectedTiles={inspectedTiles}
-                      tileContextMenu={tileContextMenu}
+                      baseClassNames={tilesCNs}
+                      size={tileSize}
+                      reveal={reveal}
+                      revealAdjacent={revealAdjacent}
+                      flag={flag}
+                      unflag={unflag}
                     />
                   ))}
                 </div>
@@ -162,29 +199,132 @@ export default function Game() {
 //   };
 // }
 
-function Tile({ tile, tilesCNs, tileSize, inspectedTiles, tileContextMenu }) {
+/**
+ * 0 = none
+ * 1 = scanning one
+ * 2 = scanning multi
+ */
+const scanState = atom({
+  key: "scanState",
+  default: 0,
+});
+
+/**
+ * Array of absIdx including target tile and adjacent tiles, in case of scanning
+ * multiple tiles.
+ */
+const scanTargets = atom({
+  key: "scanTargets",
+  default: [],
+});
+
+const scanTargetsSelector = selector({
+  key: "scanTargetsSelector",
+  set: ({ set, get }, newTargets) => {
+    const currScanState = get(scanState);
+    if (currScanState) {
+      // When scanning only one assume the first item is the tile at the center
+      // of the cluster
+      if (currScanState === 1) newTargets = newTargets.slice(0, 1);
+
+      const prevTargets = get(scanTargets);
+      const [toTrue, toFalse] = getSetDiff(newTargets, prevTargets);
+
+      set(scanTargets, newTargets);
+
+      toTrue.forEach((absIdx) => {
+        set(tileIsScanned(absIdx), true);
+      });
+
+      toFalse.forEach((absIdx) => {
+        set(tileIsScanned(absIdx), false);
+      });
+    }
+  },
+});
+
+function getSetDiff(arr1, arr2) {
+  const acc1 = {};
+  const acc2 = [];
+
+  for (let item1 of arr1) {
+    acc1[item1] = item1;
+  }
+
+  for (let item2 of arr2) {
+    if (acc1.hasOwnProperty(item2)) {
+      delete acc1[item2];
+    } else {
+      acc2.push(item2);
+    }
+  }
+  return [Object.values(acc1), acc2];
+}
+
+const tileIsScanned = atomFamily({
+  key: "tileIsScanned",
+  default: false,
+});
+
+function Tile({
+  tile,
+  baseClassNames,
+  size,
+  reveal,
+  revealAdjacent,
+  flag,
+  unflag,
+}) {
+  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
+  const isBeingScanned = useRecoilValue(tileIsScanned(tile.absIdx));
+
+  function mouseUpHandler(ev) {
+    if (ev.button === 0) {
+      if (tile.matches("HIDDEN")) reveal(tile.absIdx);
+    } else if (ev.button === 1) {
+      if (isEligibleForAdjacentReveal(tile)) revealAdjacent(tile.absIdx);
+    }
+  }
+
+  function mouseEnterHandler(ev) {
+    const nextTargets = [tile.absIdx].concat(
+      tile.adjacent.map((tl) => tl.absIdx)
+    );
+    setScannedTargets(nextTargets);
+  }
+
+  function contextMenuHandler(ev) {
+    ev.preventDefault();
+    if (tile.matches("FLAGGED")) {
+      unflag(tile.absIdx);
+    } else if (tile.matches("HIDDEN")) {
+      flag(tile.absIdx);
+    }
+  }
+
   const tileCNs = [
-    ...tilesCNs,
+    ...baseClassNames,
     [tile.matches("HIDDEN"), "hidden"],
     [tile.matches("FLAGGED"), "flagged"],
     [tile.matches("REVEALED"), "revealed"],
     [tile.hasMine, "hasMine"],
     color[Math.min(tile.value, color.length - 1)],
     [tile.value === 0, "empty"],
-    [tile.inspecting, "inspecting"],
-    [inspectedTiles.includes(tile.absIdx), "inspecting"],
+    [isBeingScanned, "inspecting"],
   ];
   return (
     <div
       key={tile.absIdx}
       {...bCN(tileCNs)}
       style={{
-        width: tileSize + "px",
-        height: tileSize + "px",
+        width: size + "px",
+        height: size + "px",
         margin: tileMargin + "px",
         fontSize: tileMargin + "em",
       }}
-      onContextMenu={tileContextMenu(tile)}
+      onMouseUp={mouseUpHandler}
+      onMouseEnter={mouseEnterHandler}
+      onContextMenu={contextMenuHandler}
     >
       <div className="board-tile-content">
         {tile.matches("REVEALED") &&

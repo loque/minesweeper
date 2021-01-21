@@ -131,7 +131,7 @@ export default class Game {
 
     const tile = this.#board.list[absIdx];
 
-    if (!this.isEligibleForAdjacentReveal(tile)) return this.res(false);
+    if (!isEligibleForAdjacentReveal(tile)) return this.res(false);
 
     const adjacentHidden = tile.adjacent.filter((tl) =>
       tl.matches(TileState.HIDDEN)
@@ -159,20 +159,6 @@ export default class Game {
     return function unsuscribe() {
       subs.splice(callbackIdx, 1);
     };
-  }
-
-  private isEligibleForAdjacentReveal(tile: Tile): boolean {
-    const adjFlags = tile.adjacent.filter((tl) => tl.matches(TileState.FLAGGED))
-      .length;
-    const possibileMines = !!tile.adjacent.filter((tl) =>
-      tl.matches(TileState.HIDDEN)
-    ).length;
-
-    return (
-      tile.matches(TileState.REVEALED) &&
-      tile.value === adjFlags &&
-      possibileMines
-    );
   }
 
   private createEmptyBoard() {
@@ -287,6 +273,20 @@ function getAdjacentForOne(
     }
   }
   return adjacent;
+}
+
+export function isEligibleForAdjacentReveal(tile: Tile): boolean {
+  const adjFlags = tile.adjacent.filter((tl) => tl.matches(TileState.FLAGGED))
+    .length;
+  const possibileMines = !!tile.adjacent.filter((tl) =>
+    tl.matches(TileState.HIDDEN)
+  ).length;
+
+  return (
+    tile.matches(TileState.REVEALED) &&
+    tile.value === adjFlags &&
+    possibileMines
+  );
 }
 
 // from: https://stackoverflow.com/a/2450976/3622350
