@@ -9,21 +9,23 @@ import {
   RiFlashlightFill as DifficultyIcon,
 } from "react-icons/ri";
 
-function ElapsedTime({ startTime, run }) {
+function ElapsedTime({ startDateTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
   useEffect(() => {
     let intervalId;
     if (run) {
       intervalId = setInterval(() => {
-        setElapsedTime(msToMS(new Date() - startTime));
+        setElapsedTime(msToMS(new Date() - startDateTime));
       }, 300);
+    } else if (startDateTime === null) {
+      setElapsedTime("00:00");
     }
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [startTime, run]);
+  }, [startDateTime, run]);
   return (
     <span className="icon-text">
       <TimeIcon className="yellow" /> {elapsedTime}
@@ -45,7 +47,7 @@ export default function StatusBar({ game }) {
             <FlagIcon className="red" /> {game.placedFlags}
           </span>
           <ElapsedTime
-            startTime={game.startDateTime}
+            startDateTime={game.startDateTime}
             run={game.state("PLAYING")}
           />
         </div>
