@@ -297,7 +297,7 @@ function Tile({
     ev.preventDefault();
     if (tile.state("FLAGGED")) {
       unflag(tile.absIdx);
-    } else if (tile.matstateches("HIDDEN")) {
+    } else if (tile.state("HIDDEN")) {
       flag(tile.absIdx);
     }
   }
@@ -327,10 +327,7 @@ function Tile({
       onContextMenu={contextMenuHandler}
     >
       <div className="board-tile-content">
-        {tile.matstateches("REVEALED") &&
-          !tile.hasMine &&
-          !!tile.value &&
-          tile.value}
+        {tile.state("REVEALED") && !tile.hasMine && !!tile.value && tile.value}
         {tile.state("FLAGGED") && <FlagIcon className="red" />}
         {tile.state("REVEALED") && tile.hasMine && <MineIcon />}
       </div>
