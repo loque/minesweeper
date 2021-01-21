@@ -48,8 +48,7 @@ export default class Game {
   }
 
   get placedFlags(): number {
-    return this.#board.list.filter((tl) => tl.matches(TileState.FLAGGED))
-      .length;
+    return this.#board.list.filter((tl) => tl.state(TileState.FLAGGED)).length;
   }
 
   get startDateTime() {
@@ -68,26 +67,28 @@ export default class Game {
     return time;
   }
 
-  matches(state: GameState): boolean {
+  state(state: GameState | null = null): GameState | boolean {
+    if (state === null) return this.#state;
     return this.#state === state;
   }
 
-  get result() {
-    return this.#result;
+  result(result: GameResult | null = null): GameResult | boolean {
+    if (result === null) return this.#result;
+    return this.#result === result;
   }
 
   flag(absIdx: number): boolean {
-    if (this.matches(GameState.ENDED)) return this.res(false);
+    if (this.state(GameState.ENDED)) return this.res(false);
     return this.res(this.#board.list[absIdx].flag());
   }
 
   unflag(absIdx: number): boolean {
-    if (this.matches(GameState.ENDED)) return this.res(false);
+    if (this.state(GameState.ENDED)) return this.res(false);
     return this.res(this.#board.list[absIdx].unflag());
   }
 
   reveal(absIdx: number, endIfMineIsFound = true): boolean {
-    if (this.matches(GameState.ENDED)) return this.res(false);
+    if (this.state(GameState.ENDED)) return this.res(false);
 
     // We place mines just before the first move because
     // the first move should never be a mine
@@ -114,7 +115,7 @@ export default class Game {
     if (tile.value === 0) {
       // If all adjacent tiles do not have a mine, then collect them
       const adjHidden = tile.adjacent.filter((tl) =>
-        tl.matches(TileState.HIDDEN)
+        tl.state(TileState.HIDDEN)
       );
       for (const adj of adjHidden) {
         if (cluster.has(adj.absIdx)) continue;
@@ -127,14 +128,14 @@ export default class Game {
   }
 
   revealAdjacent(absIdx: number): boolean {
-    if (this.matches(GameState.ENDED)) return this.res(false);
+    if (this.state(GameState.ENDED)) return this.res(false);
 
     const tile = this.#board.list[absIdx];
 
     if (!isEligibleForAdjacentReveal(tile)) return this.res(false);
 
     const adjacentHidden = tile.adjacent.filter((tl) =>
-      tl.matches(TileState.HIDDEN)
+      tl.state(TileState.HIDDEN)
     );
 
     const someAdjacentRevealed = adjacentHidden
@@ -232,7 +233,7 @@ export default class Game {
     const totalTiles = this.#config.rows * this.#config.cols;
     const nonMineTiles = totalTiles - this.#config.mines;
     const nonMineTilesRevealed = this.#board.list.filter(
-      (tl: Tile) => tl.matches(TileState.REVEALED) && tl.hasMine === false
+      (tl: Tile) => tl.state(TileState.REVEALED) && tl.hasMine === false
     ).length;
 
     return nonMineTilesRevealed === nonMineTiles;
@@ -248,14 +249,14 @@ export default class Game {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
     this.#result = GameResult.LOST;
-    return true;
+    return this.res(true);
   }
 
   private gameWon() {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
     this.#result = GameResult.WON;
-    return true;
+    return this.res(true);
   }
 
   private res(result: boolean): boolean {
@@ -289,16 +290,14 @@ function getAdjacentForOne(
 }
 
 export function isEligibleForAdjacentReveal(tile: Tile): boolean {
-  const adjFlags = tile.adjacent.filter((tl) => tl.matches(TileState.FLAGGED))
+  const adjFlags = tile.adjacent.filter((tl) => tl.state(TileState.FLAGGED))
     .length;
   const possibileMines = !!tile.adjacent.filter((tl) =>
-    tl.matches(TileState.HIDDEN)
+    tl.state(TileState.HIDDEN)
   ).length;
 
   return (
-    tile.matches(TileState.REVEALED) &&
-    tile.value === adjFlags &&
-    possibileMines
+    tile.state(TileState.REVEALED) && tile.value === adjFlags && possibileMines
   );
 }
 

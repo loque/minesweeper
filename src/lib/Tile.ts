@@ -34,7 +34,8 @@ export default class Tile {
     return this.#colIdx;
   }
 
-  matches(state: TileState) {
+  state(state: TileState | null): TileState | boolean {
+    if (state === null) return this.#state;
     return this.#state === state;
   }
 

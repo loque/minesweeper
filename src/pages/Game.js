@@ -49,7 +49,7 @@ export default function Game() {
   // useEffect(() => {
   //   if (prevGameState.current !== game.state) {
   //     prevGameState.current = game.state;
-  //     if (game.matches('ended')) {
+  //     if (game.state('ended')) {
   //       config.addResult(result);
   //     }
   //   }
@@ -150,7 +150,7 @@ export default function Game() {
     game.unflag(absIdx);
   }
 
-  const tilesCNs = ["board-tile", [game.matches("ENDED"), "disabled"]];
+  const tilesCNs = ["board-tile", [game.state("ENDED"), "disabled"]];
   return (
     <div className="view">
       <div className="container">
@@ -159,7 +159,7 @@ export default function Game() {
 
         <div
           ref={boardRef}
-          {...bCN("board", [game.matches("ENDED"), "disabled"])}
+          {...bCN("board", [game.state("ENDED"), "disabled"])}
           onMouseLeave={mouseLeaveHandler}
         >
           {game.board &&
@@ -182,7 +182,7 @@ export default function Game() {
               );
             })}
         </div>
-        {game.matches("ENDED") && <EndGame game={game} />}
+        {game.state("ENDED") && <EndGame game={game} />}
       </div>
     </div>
   );
@@ -280,7 +280,7 @@ function Tile({
 
   function mouseUpHandler(ev) {
     if (ev.button === 0) {
-      if (tile.matches("HIDDEN")) reveal(tile.absIdx);
+      if (tile.state("HIDDEN")) reveal(tile.absIdx);
     } else if (ev.button === 1) {
       if (isEligibleForAdjacentReveal(tile)) revealAdjacent(tile.absIdx);
     }
@@ -295,18 +295,18 @@ function Tile({
 
   function contextMenuHandler(ev) {
     ev.preventDefault();
-    if (tile.matches("FLAGGED")) {
+    if (tile.state("FLAGGED")) {
       unflag(tile.absIdx);
-    } else if (tile.matches("HIDDEN")) {
+    } else if (tile.matstateches("HIDDEN")) {
       flag(tile.absIdx);
     }
   }
 
   const tileCNs = [
     ...baseClassNames,
-    [tile.matches("HIDDEN"), "hidden"],
-    [tile.matches("FLAGGED"), "flagged"],
-    [tile.matches("REVEALED"), "revealed"],
+    [tile.state("HIDDEN"), "hidden"],
+    [tile.state("FLAGGED"), "flagged"],
+    [tile.state("REVEALED"), "revealed"],
     [tile.hasMine, "hasMine"],
     color[Math.min(tile.value, color.length - 1)],
     [tile.value === 0, "empty"],
@@ -327,12 +327,12 @@ function Tile({
       onContextMenu={contextMenuHandler}
     >
       <div className="board-tile-content">
-        {tile.matches("REVEALED") &&
+        {tile.matstateches("REVEALED") &&
           !tile.hasMine &&
           !!tile.value &&
           tile.value}
-        {tile.matches("FLAGGED") && <FlagIcon className="red" />}
-        {tile.matches("REVEALED") && tile.hasMine && <MineIcon />}
+        {tile.state("FLAGGED") && <FlagIcon className="red" />}
+        {tile.state("REVEALED") && tile.hasMine && <MineIcon />}
       </div>
     </div>
   );
@@ -367,12 +367,12 @@ function EndGame({ game }) {
   return (
     <div className="endgame">
       <div className="endgame-modal">
-        {game.matches("ENDED") && game.result === "WON" && (
+        {game.state("ENDED") && game.result("WON") && (
           <div className="endgame-result icon-text">
             <HappyIcon className="yellow" /> You won!
           </div>
         )}
-        {game.matches("ENDED") && game.result === "LOST" && (
+        {game.state("ENDED") && game.result("LOST") && (
           <div className="endgame-result icon-text">
             <SadIcon className="red" /> You Lost!
           </div>
