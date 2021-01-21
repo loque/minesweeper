@@ -141,12 +141,25 @@ export default class Game {
       .map((t) => t.reveal())
       .some((res) => res);
 
-    if (!!adjacentHidden.find((t) => t.hasMine)) {
+    if (!!adjacentHidden.find((tl) => tl.hasMine)) {
       return this.gameLost();
     }
 
     if (this.allNonMineTilesRevealed()) {
       return this.gameWon();
+    }
+
+    const adjacentZeros = adjacentHidden.filter((tl) => tl.value === 0);
+
+    if (adjacentZeros.length) {
+      let cluster: Cluster = new Set();
+      for (const adjZero of adjacentZeros) {
+        const newCluster = this.getCluster(adjZero);
+        cluster = new Set([...cluster, ...newCluster]);
+      }
+      for (const adjAbsIdx of cluster.values()) {
+        this.#board.list[adjAbsIdx].reveal();
+      }
     }
 
     return this.res(someAdjacentRevealed);
