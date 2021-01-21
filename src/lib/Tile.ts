@@ -4,7 +4,9 @@ export enum TileState {
   REVEALED = "REVEALED",
 }
 
+let counter = 0;
 export default class Tile {
+  #key: string;
   #state: TileState = TileState.HIDDEN;
   #absIdx: number = 0;
   #rowIdx: number = 0;
@@ -12,10 +14,15 @@ export default class Tile {
   hasMine: boolean = false;
   adjacent: Tile[] = [];
 
-  constructor(absIdx: number, rowIdx: number, colIdx: number) {
+  constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
+    this.#key = gameKey + ":tile" + counter++;
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
     this.#colIdx = colIdx;
+  }
+
+  get key() {
+    return this.#key;
   }
 
   get value() {
@@ -65,6 +72,7 @@ export default class Tile {
 
   log() {
     return {
+      key: this.#key,
       state: this.#state,
       absIdx: this.#absIdx,
       rowIdx: this.#rowIdx,

@@ -24,10 +24,12 @@ interface Board {
   matrix: BoardMatrix;
 }
 
-type Subscription = (game: Game) => void;
+type Subscription = () => void;
 type Cluster = Set<number>;
 
-export default class Game {
+let counter = 0;
+export default class Minesweeper {
+  #key: string;
   #state: GameState = GameState.IDLE;
   #result: GameResult = GameResult.NONE;
   #config: BoardConfig;
@@ -38,9 +40,14 @@ export default class Game {
   #subscriptions: Subscription[] = [];
 
   constructor(config: BoardConfig) {
+    this.#key = "game" + counter++;
     this.#config = config;
     this.createEmptyBoard();
     this.setAdjacent();
+  }
+
+  get key() {
+    return this.#key;
   }
 
   get board(): BoardMatrix {
@@ -183,7 +190,7 @@ export default class Game {
     for (let rowIdx = 0; rowIdx < rows; rowIdx++) {
       const row = [];
       for (let colIdx = 0; colIdx < cols; colIdx++) {
-        const newTile = new Tile(absIdx, rowIdx, colIdx);
+        const newTile = new Tile(this.#key, absIdx, rowIdx, colIdx);
         list.push(newTile);
         row.push(newTile);
         absIdx++;
@@ -260,7 +267,7 @@ export default class Game {
   }
 
   private res(result: boolean): boolean {
-    if (result) this.#subscriptions.forEach((sub) => sub(this));
+    if (result) this.#subscriptions.forEach((sub) => sub());
     return result;
   }
 }

@@ -41,6 +41,7 @@ export default function Game() {
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
       prevLocationKey.current = location.key;
+      console.log("reset request");
       reset();
     }
   }, [reset, prevLocationKey, location.key]);
@@ -168,7 +169,7 @@ export default function Game() {
                 <div className="board-row" key={rowIdx}>
                   {row.map((tile) => (
                     <Tile
-                      key={tile.absIdx}
+                      key={tile.key}
                       tile={tile}
                       baseClassNames={tilesCNs}
                       size={tileSize}
