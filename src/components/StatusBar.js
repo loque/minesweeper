@@ -39,14 +39,14 @@ export default function StatusBar({ game }) {
         <UserIcon /> {config.name}
       </span>
 
-      {game.meta && (
+      {game.matches && (
         <div className="icon-text-group">
           <span className="icon-text p-right">
-            <FlagIcon className="red" /> {game.meta.placedFlags}
+            <FlagIcon className="red" /> {game.placedFlags}
           </span>
           <ElapsedTime
-            startTime={game.meta.startDateTime}
-            run={game.matches("playing")}
+            startTime={game.startDateTime}
+            run={game.matches("PLAYING")}
           />
         </div>
       )}
