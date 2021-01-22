@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import "./App.scss";
-import Setup from "./Setup";
-import Game from "./Game";
-import Results from "./Results";
+import Game from "./pages/Game";
+import Results from "./pages/Results";
+import Setup from "./pages/Setup";
 
 function App() {
   return (

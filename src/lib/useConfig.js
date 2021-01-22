@@ -10,12 +10,12 @@ export function ConfigProvider({ children }) {
   );
 }
 
-export const useConfig = () => {
+export default function useConfig() {
   return useContext(ConfigContext);
-};
+}
 
 const initialState = {
-  difficulty: localStorage.getItem("difficulty") || "EASY",
+  level: localStorage.getItem("level") || 1,
   name: localStorage.getItem("name") || "",
   results: JSON.parse(localStorage.getItem("results")) || [],
 };
@@ -23,9 +23,9 @@ const initialState = {
 function useProviderConfig() {
   const [config, setConfig] = useState(initialState);
 
-  function setDifficulty(difficulty) {
-    localStorage.setItem("difficulty", difficulty);
-    setConfig((state) => ({ ...state, difficulty }));
+  function setLevel(level) {
+    localStorage.setItem("level", level);
+    setConfig((state) => ({ ...state, level }));
   }
 
   function setName(name) {
@@ -33,16 +33,13 @@ function useProviderConfig() {
     setConfig((state) => ({ ...state, name }));
   }
 
-  // result: startTime, endTime, difficulty, gameTime, status,
   function addResult(newResult) {
     setConfig((state) => {
       const { results } = state;
       results.push(newResult);
       results.sort((a, b) => {
-        const diffA = difficultyScore[a.difficulty];
-        const diffB = difficultyScore[b.difficulty];
-        if (diffA < diffB) return -1;
-        if (diffA > diffB) return 1;
+        if (a.level < b.level) return -1;
+        if (a.level > b.level) return 1;
         if (a.gameTime < b.gameTime) return -1;
         if (a.gameTime > b.gameTime) return 1;
         return 0;
@@ -54,18 +51,11 @@ function useProviderConfig() {
 
   function clearResults() {
     setConfig((state) => {
-      let { results } = state;
-      results = [];
+      const results = [];
       localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });
   }
 
-  return { ...config, setDifficulty, setName, addResult, clearResults };
+  return { ...config, setLevel, setName, addResult, clearResults };
 }
-
-const difficultyScore = {
-  EASY: 0,
-  MEDIUM: 1,
-  HARD: 2,
-};
