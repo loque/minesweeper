@@ -52,8 +52,7 @@ function useProviderConfig() {
 
   function clearResults() {
     setConfig((state) => {
-      let { results } = state;
-      results = [];
+      const results = [];
       localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });
