@@ -37,13 +37,6 @@ function useProviderConfig() {
     setConfig((state) => {
       const { results } = state;
       results.push(newResult);
-      results.sort((a, b) => {
-        if (a.level < b.level) return -1;
-        if (a.level > b.level) return 1;
-        if (a.gameTime < b.gameTime) return -1;
-        if (a.gameTime > b.gameTime) return 1;
-        return 0;
-      });
       localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });
