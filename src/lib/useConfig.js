@@ -15,7 +15,7 @@ export default function useConfig() {
 }
 
 const initialState = {
-  level: localStorage.getItem("level") || 0,
+  level: localStorage.getItem("level") || 1,
   name: localStorage.getItem("name") || "",
   results: JSON.parse(localStorage.getItem("results")) || [],
 };
@@ -33,7 +33,6 @@ function useProviderConfig() {
     setConfig((state) => ({ ...state, name }));
   }
 
-  // result: startTime, endTime, level, gameTime, status,
   function addResult(newResult) {
     setConfig((state) => {
       const { results } = state;
