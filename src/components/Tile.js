@@ -1,28 +1,56 @@
+import { useEffect, useState } from "react";
 import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
+import {
+  scanTargetsSelector,
+  tileIsScanned,
+  tileSizeAtom,
+} from "../game/states";
 import { useSetRecoilState, useRecoilValue } from "recoil";
 import {
   RiFlag2Fill as FlagIcon,
   RiFocus3Fill as MineIcon,
 } from "react-icons/ri";
 import { tileMargin } from "../pages/Game";
-import { scanTargetsSelector, tileIsScanned } from "../game/states";
 import { bCN } from "../lib/utils";
+import "../pages/Game.scss";
 
+/**
+ * Changes that Tile should be notified of:
+ *    state
+ *        hidden => flagged
+ *        flagged => hidden
+ *        hidden => revealed
+ *    value
+ *        0 => n
+ *    hasMine
+ *        false => true
+ *
+ */
 export default function Tile({
   tile,
   baseClassNames,
-  size,
   reveal,
   revealAdjacent,
   flag,
   unflag,
 }) {
+  const [tileState, setTileState] = useState(tile.state);
+
+  useEffect(() => {
+    const listener = (ev) => {
+      setTileState(ev.detail);
+    };
+    tile.addEventListener("stateChange", listener);
+    return () => tile.removeEventListener("stateChange", listener);
+  }, [tile]);
+
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
   const isBeingScanned = useRecoilValue(tileIsScanned(tile.absIdx));
+  const size = useRecoilValue(tileSizeAtom);
 
   function mouseUpHandler(ev) {
     if (ev.button === 0) {
-      if (tile.state("HIDDEN")) reveal(tile.absIdx);
+      if (tileState === "HIDDEN") reveal(tile.absIdx);
     } else if (ev.button === 1) {
       if (isEligibleForAdjacentReveal(tile)) revealAdjacent(tile.absIdx);
     }
@@ -37,18 +65,18 @@ export default function Tile({
 
   function contextMenuHandler(ev) {
     ev.preventDefault();
-    if (tile.state("FLAGGED")) {
+    if (tileState === "FLAGGED") {
       unflag(tile.absIdx);
-    } else if (tile.state("HIDDEN")) {
+    } else if (tileState === "HIDDEN") {
       flag(tile.absIdx);
     }
   }
 
   const tileCNs = [
     ...baseClassNames,
-    [tile.state("HIDDEN"), "hidden"],
-    [tile.state("FLAGGED"), "flagged"],
-    [tile.state("REVEALED"), "revealed"],
+    [tileState === "HIDDEN", "hidden"],
+    [tileState === "FLAGGED", "flagged"],
+    [tileState === "REVEALED", "revealed"],
     [tile.hasMine, "hasMine"],
     color[Math.min(tile.value, color.length - 1)],
     [tile.value === 0, "empty"],
@@ -69,9 +97,12 @@ export default function Tile({
       onContextMenu={contextMenuHandler}
     >
       <div className="board-tile-content">
-        {tile.state("REVEALED") && !tile.hasMine && !!tile.value && tile.value}
-        {tile.state("FLAGGED") && <FlagIcon className="red" />}
-        {tile.state("REVEALED") && tile.hasMine && <MineIcon />}
+        {tileState === "REVEALED" &&
+          !tile.hasMine &&
+          !!tile.value &&
+          tile.value}
+        {tileState === "FLAGGED" && <FlagIcon className="red" />}
+        {tileState === "REVEALED" && tile.hasMine && <MineIcon />}
       </div>
     </div>
   );

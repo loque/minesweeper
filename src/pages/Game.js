@@ -6,8 +6,8 @@ import useConfig from "../lib/useConfig";
 import useResize from "../lib/useResize";
 import { bCN } from "../lib/utils";
 import EndGame from "../components/EndGame";
-import { scanState, scanTargetsSelector } from "../game/states";
-import { useSetRecoilState } from "recoil";
+import { scanState, scanTargetsSelector, tileSizeAtom } from "../game/states";
+import { useSetRecoilState, useRecoilState } from "recoil";
 
 import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
@@ -15,16 +15,32 @@ import Tile from "../components/Tile";
 
 export const tileMargin = 1.5;
 
+/**
+ * Changes that Game needs to be notified about:
+ *    state:
+ *        idle
+ *        ready (board is created)
+ *        playing (startDateTime is set)
+ *        ended
+ *    board:
+ *        when ready, render the tiles (no updates needed)
+ *    flagsCount:
+ *        could this be handled by StatusBar? Listening a recoil state
+ *
+ * What do we do with actions? (flag, unflag, reveal, revealAdjacent)
+ */
+
 export default function Game() {
   const location = useLocation();
   const prevLocationKey = useRef(location.key);
 
   const config = useConfig();
   const [game, reset] = useGame(config.level);
+  const [gameState, setGameState] = useState();
   const prevGameState = useRef();
 
   const boardRef = useRef();
-  const [tileSize, setTileSize] = useState(0);
+  const [tileSize, setTileSize] = useRecoilState(tileSizeAtom);
 
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
@@ -33,11 +49,18 @@ export default function Game() {
     }
   }, [reset, prevLocationKey, location.key]);
 
-  const gameState = game.state();
+  useEffect(() => {
+    const listener = (ev) => {
+      setGameState(ev.detail);
+    };
+    game.addEventListener("stateChange", listener);
+    return () => game.removeEventListener("stateChange", listener);
+  }, [game.key]);
+
   useEffect(() => {
     if (prevGameState.current !== gameState) {
       prevGameState.current = gameState;
-      if (game.state("ENDED")) {
+      if (gameState === "ENDED") {
         config.addResult(buildResult(game, config));
       }
     }
@@ -60,6 +83,8 @@ export default function Game() {
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
   useEffect(() => {
+    // if (["ready", "playing"].includes(gameState) === false) return;
+
     function activateDetection(ev) {
       ev.preventDefault();
       if (ev.button === 0) {
@@ -98,10 +123,9 @@ export default function Game() {
         mouseY >= 0 &&
         mouseY < boardRect.height
       ) {
-        const currTileSize = tileSize + tileMargin * 2;
-        const colIdx = Math.floor(mouseX / currTileSize);
-        const rowIdx = Math.floor(mouseY / currTileSize);
-        // console.log({ type: "SET_POSITION", rowIdx, colIdx }, 0);
+        const tileSpace = tileSize + tileMargin * 2;
+        const colIdx = Math.floor(mouseX / tileSpace);
+        const rowIdx = Math.floor(mouseY / tileSpace);
         const tile = game.board[rowIdx][colIdx];
         const nextTargets = [tile.absIdx].concat(
           tile.adjacent.map((tl) => tl.absIdx)
@@ -138,16 +162,16 @@ export default function Game() {
     game.unflag(absIdx);
   }
 
-  const tilesCNs = ["board-tile", [game.state("ENDED"), "disabled"]];
+  const tilesCNs = ["board-tile", [gameState === "ENDED", "disabled"]];
   return (
     <div className="view">
-      <div className="container">
+      <div className="container board-container">
         <Header />
         <StatusBar game={game} />
 
         <div
           ref={boardRef}
-          {...bCN("board", [game.state("ENDED"), "disabled"])}
+          {...bCN("board", [gameState === "ENDED", "disabled"])}
           onMouseLeave={mouseLeaveHandler}
         >
           {game.board &&
@@ -159,7 +183,6 @@ export default function Game() {
                       key={tile.key}
                       tile={tile}
                       baseClassNames={tilesCNs}
-                      size={tileSize}
                       reveal={reveal}
                       revealAdjacent={revealAdjacent}
                       flag={flag}
@@ -170,7 +193,7 @@ export default function Game() {
               );
             })}
         </div>
-        {game.state("ENDED") && <EndGame game={game} />}
+        {gameState === "ENDED" && <EndGame game={game} />}
       </div>
     </div>
   );

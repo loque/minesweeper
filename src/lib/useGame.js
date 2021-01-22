@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import Minesweeper from "../game/Minesweeper";
 
 export const levels = [
@@ -9,22 +9,20 @@ export const levels = [
 
 export default function useGame(level) {
   const config = levels[level - 1] || levels[0];
-  const [game, setGame] = useState(() => new Minesweeper(config));
+  const game = useRef(null);
   const [_, setTick] = useState(0); // eslint-disable-line no-unused-vars
 
-  useEffect(() => {
-    const unsuscribe = game.subscribe(() => {
-      setTick((t) => t + 1);
-    });
-    return unsuscribe;
-  }, [game]);
+  if (game.current === null) {
+    game.current = new Minesweeper(config);
+  }
 
   const reset = useCallback(
     function reset() {
-      setGame(() => new Minesweeper(config));
+      // setGame(() => new Minesweeper(config));
+      game.current = new Minesweeper(config);
     },
     [config]
   );
 
-  return [game, reset];
+  return [game.current, reset];
 }

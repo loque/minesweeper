@@ -5,16 +5,17 @@ export enum TileState {
 }
 
 let counter = 0;
-export default class Tile {
+export default class Tile extends EventTarget {
   #key: string;
   #state: TileState = TileState.HIDDEN;
   #absIdx: number = 0;
   #rowIdx: number = 0;
   #colIdx: number = 0;
   hasMine: boolean = false;
-  adjacent: Tile[] = [];
+  #adjacent: Tile[] = [];
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
+    super();
     this.#key = gameKey + ":tile" + counter++;
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
@@ -25,8 +26,8 @@ export default class Tile {
     return this.#key;
   }
 
-  get value() {
-    return this.adjacent.filter((t) => t.hasMine).length;
+  get state() {
+    return this.#state;
   }
 
   get absIdx() {
@@ -41,14 +42,24 @@ export default class Tile {
     return this.#colIdx;
   }
 
-  state(state: TileState | null): TileState | boolean {
-    if (state === null) return this.#state;
-    return this.#state === state;
+  get value() {
+    return this.#adjacent.filter((t) => t.hasMine).length;
+  }
+
+  get adjacent() {
+    return this.#adjacent;
+  }
+
+  set adjacent(newAdjacentList) {
+    this.#adjacent = newAdjacentList;
   }
 
   flag(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.FLAGGED;
+      this.dispatchEvent(
+        new CustomEvent("stateChange", { detail: this.#state })
+      );
       return true;
     }
     return false;
@@ -57,6 +68,9 @@ export default class Tile {
   unflag(): boolean {
     if (this.#state === TileState.FLAGGED) {
       this.#state = TileState.HIDDEN;
+      this.dispatchEvent(
+        new CustomEvent("stateChange", { detail: this.#state })
+      );
       return true;
     }
     return false;
@@ -65,6 +79,9 @@ export default class Tile {
   reveal(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.REVEALED;
+      this.dispatchEvent(
+        new CustomEvent("stateChange", { detail: this.#state })
+      );
       return true;
     }
     return false;

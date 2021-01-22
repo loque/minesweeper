@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   RiRefreshLine as ReloadIcon,
@@ -9,6 +9,20 @@ import {
 
 export default function EndGame({ game }) {
   const autofocus = useRef();
+  const [gameState, setGameState] = useState(() => game.state());
+  const [gameResult, setGameResult] = useState(() => game.result());
+
+  useEffect(() => {
+    const callback = (ev) => setGameState(ev.detail);
+    game.addEventListener("stateChange", callback);
+    return () => game.removeEventListener("stateChange", callback);
+  }, [game]);
+
+  useEffect(() => {
+    const callback = (ev) => setGameResult(ev.detail);
+    game.addEventListener("resultChange", callback);
+    return () => game.removeEventListener("resultChange", callback);
+  }, [game]);
 
   useEffect(() => {
     if (autofocus.current) autofocus.current.focus();
@@ -16,28 +30,24 @@ export default function EndGame({ game }) {
 
   return (
     <div className="endgame">
-      <div className="endgame-modal">
-        {game.state("ENDED") && game.result("WON") && (
-          <div className="endgame-result icon-text">
-            <HappyIcon className="yellow" /> You won!
-          </div>
-        )}
-        {game.state("ENDED") && game.result("LOST") && (
-          <div className="endgame-result icon-text">
-            <SadIcon className="red" /> You Lost!
-          </div>
-        )}
-        <div className="endgame-actions">
-          <Link ref={autofocus} className="button icon-text" to="/game">
-            <ReloadIcon />
-            Play again
-          </Link>
-          <Link to="/results" className="button icon-text">
-            <MedalIcon />
-            Results
-          </Link>
+      {gameState === "ENDED" && gameResult === "WON" && (
+        <div className="endgame-result icon-text">
+          <HappyIcon className="yellow" /> You won!
         </div>
-      </div>
+      )}
+      {gameState === "ENDED" && gameResult === "LOST" && (
+        <div className="endgame-result icon-text">
+          <SadIcon className="red" /> You Lost!
+        </div>
+      )}
+      <Link ref={autofocus} className="button icon-text" to="/game">
+        <ReloadIcon />
+        Play
+      </Link>
+      <Link to="/results" className="button icon-text">
+        <MedalIcon />
+        Results
+      </Link>
     </div>
   );
 }

@@ -1,9 +1,11 @@
+.board-container {
+  padding-bottom: 4rem;
+}
 .board {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding-bottom: 4rem;
   &.disabled::after {
     content: "";
     position: absolute;
@@ -11,7 +13,6 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.199);
   }
 }
 
@@ -90,33 +91,24 @@
 }
 
 .endgame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: sticky;
   bottom: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  .endgame-modal {
-    padding: 4rem 0;
-    width: 100%;
-    max-width: 80%;
-    background-color: #292425;
-    box-shadow: 0 5px 30px #171515;
-    .endgame-result {
-      display: flex;
-      justify-content: center;
-      font-size: 2rem;
-      padding-bottom: 3rem;
-      svg {
-        font-size: 3em;
-      }
-    }
-    .endgame-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
+  flex-direction: row;
+  padding: 2rem 0;
+  width: 100%;
+  background-color: #292425;
+  & > a:first-of-type {
+    margin-right: 1rem;
+  }
+  .endgame-result {
+    display: flex;
+    justify-content: center;
+    font-size: 1.5rem;
+    white-space: nowrap;
+    flex: 1;
+    svg {
+      font-size: 2em;
     }
   }
 }

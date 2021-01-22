@@ -1,5 +1,30 @@
 import { atom, atomFamily, selector } from "recoil";
 
+export const tileSizeAtom = atom({
+  key: "tileSizeAtom",
+  default: 0,
+});
+
+export const tileIsScanned = atomFamily({
+  key: "tileIsScanned",
+  default: false,
+});
+
+export const tileState = atomFamily({
+  key: "tileState",
+  default: "HIDDEN",
+});
+
+export const tileValue = atomFamily({
+  key: "tileValue",
+  default: 0,
+});
+
+export const tileHasMine = atomFamily({
+  key: "tileHasMine",
+  default: false,
+});
+
 /**
  * 0 = none
  * 1 = scanning one
@@ -61,8 +86,3 @@ function getSetDiff(arr1, arr2) {
   }
   return [Object.values(acc1), acc2];
 }
-
-export const tileIsScanned = atomFamily({
-  key: "tileIsScanned",
-  default: false,
-});
