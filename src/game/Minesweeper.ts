@@ -55,8 +55,11 @@ export default class Minesweeper {
     return this.#board.matrix;
   }
 
-  get placedFlags(): number {
-    return this.#board.list.filter((tl) => tl.state(TileState.FLAGGED)).length;
+  get flagsCount(): number {
+    return (
+      this.#config.mines -
+      this.#board.list.filter((tl) => tl.state(TileState.FLAGGED)).length
+    );
   }
 
   get startDateTime() {
@@ -243,7 +246,6 @@ export default class Minesweeper {
     const nonMineTilesRevealed = this.#board.list.filter(
       (tl: Tile) => tl.state(TileState.REVEALED) && tl.hasMine === false
     ).length;
-
     return nonMineTilesRevealed === nonMineTiles;
   }
 

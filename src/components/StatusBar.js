@@ -44,7 +44,7 @@ export default function StatusBar({ game }) {
       {game.state && (
         <div className="icon-text-group">
           <span className="icon-text p-right">
-            <FlagIcon className="red" /> {game.placedFlags}
+            <FlagIcon className="red" /> {game.flagsCount}
           </span>
           <ElapsedTime
             startDateTime={game.startDateTime}
