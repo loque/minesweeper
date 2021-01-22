@@ -1,31 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import "./Game.scss";
 import useGame from "../lib/useGame";
-import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
 import useConfig from "../lib/useConfig";
 import useResize from "../lib/useResize";
-import {
-  atom,
-  useSetRecoilState,
-  atomFamily,
-  useRecoilValue,
-  selector,
-} from "recoil";
-
-import {
-  RiFlag2Fill as FlagIcon,
-  RiFocus3Fill as MineIcon,
-  RiRefreshLine as ReloadIcon,
-  RiMedalFill as MedalIcon,
-  RiEmotionFill as HappyIcon,
-  RiEmotionUnhappyFill as SadIcon,
-} from "react-icons/ri";
+import { bCN } from "../lib/utils";
+import EndGame from "../components/EndGame";
+import { scanState, scanTargetsSelector } from "../game/states";
+import { useSetRecoilState } from "recoil";
 
 import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
+import Tile from "../components/Tile";
 
-const tileMargin = 1.5;
+export const tileMargin = 1.5;
 
 export default function Game() {
   const location = useLocation();
@@ -196,194 +184,4 @@ function buildResult(game, config) {
     result: game.result(),
     name: config.name,
   };
-}
-
-/**
- * 0 = none
- * 1 = scanning one
- * 2 = scanning multi
- */
-const scanState = atom({
-  key: "scanState",
-  default: 0,
-});
-
-/**
- * Array of absIdx including target tile and adjacent tiles, in case of scanning
- * multiple tiles.
- */
-const scanTargets = atom({
-  key: "scanTargets",
-  default: [],
-});
-
-const scanTargetsSelector = selector({
-  key: "scanTargetsSelector",
-  set: ({ set, get }, newTargets) => {
-    const currScanState = get(scanState);
-    if (currScanState) {
-      // When scanning only one assume the first item is the tile at the center
-      // of the cluster
-      if (currScanState === 1) newTargets = newTargets.slice(0, 1);
-
-      const prevTargets = get(scanTargets);
-      const [toTrue, toFalse] = getSetDiff(newTargets, prevTargets);
-
-      set(scanTargets, newTargets);
-
-      toTrue.forEach((absIdx) => {
-        set(tileIsScanned(absIdx), true);
-      });
-
-      toFalse.forEach((absIdx) => {
-        set(tileIsScanned(absIdx), false);
-      });
-    }
-  },
-});
-
-function getSetDiff(arr1, arr2) {
-  const acc1 = {};
-  const acc2 = [];
-
-  for (let item1 of arr1) {
-    acc1[item1] = item1;
-  }
-
-  for (let item2 of arr2) {
-    if (acc1.hasOwnProperty(item2)) {
-      delete acc1[item2];
-    } else {
-      acc2.push(item2);
-    }
-  }
-  return [Object.values(acc1), acc2];
-}
-
-const tileIsScanned = atomFamily({
-  key: "tileIsScanned",
-  default: false,
-});
-
-function Tile({
-  tile,
-  baseClassNames,
-  size,
-  reveal,
-  revealAdjacent,
-  flag,
-  unflag,
-}) {
-  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
-  const isBeingScanned = useRecoilValue(tileIsScanned(tile.absIdx));
-
-  function mouseUpHandler(ev) {
-    if (ev.button === 0) {
-      if (tile.state("HIDDEN")) reveal(tile.absIdx);
-    } else if (ev.button === 1) {
-      if (isEligibleForAdjacentReveal(tile)) revealAdjacent(tile.absIdx);
-    }
-  }
-
-  function mouseEnterHandler(ev) {
-    const nextTargets = [tile.absIdx].concat(
-      tile.adjacent.map((tl) => tl.absIdx)
-    );
-    setScannedTargets(nextTargets);
-  }
-
-  function contextMenuHandler(ev) {
-    ev.preventDefault();
-    if (tile.state("FLAGGED")) {
-      unflag(tile.absIdx);
-    } else if (tile.state("HIDDEN")) {
-      flag(tile.absIdx);
-    }
-  }
-
-  const tileCNs = [
-    ...baseClassNames,
-    [tile.state("HIDDEN"), "hidden"],
-    [tile.state("FLAGGED"), "flagged"],
-    [tile.state("REVEALED"), "revealed"],
-    [tile.hasMine, "hasMine"],
-    color[Math.min(tile.value, color.length - 1)],
-    [tile.value === 0, "empty"],
-    [isBeingScanned, "inspecting"],
-  ];
-  return (
-    <div
-      key={tile.absIdx}
-      {...bCN(tileCNs)}
-      style={{
-        width: size + "px",
-        height: size + "px",
-        margin: tileMargin + "px",
-        fontSize: tileMargin + "em",
-      }}
-      onMouseUp={mouseUpHandler}
-      onMouseEnter={mouseEnterHandler}
-      onContextMenu={contextMenuHandler}
-    >
-      <div className="board-tile-content">
-        {tile.state("REVEALED") && !tile.hasMine && !!tile.value && tile.value}
-        {tile.state("FLAGGED") && <FlagIcon className="red" />}
-        {tile.state("REVEALED") && tile.hasMine && <MineIcon />}
-      </div>
-    </div>
-  );
-}
-
-const color = ["grey", "blue", "green", "red", "dark-blue"];
-
-// Build classNames
-function bCN(...cNs) {
-  if (cNs.length === 1 && Array.isArray(cNs[0])) cNs = cNs[0];
-  const className = cNs
-    .map((cn) => {
-      if (Array.isArray(cn)) {
-        const value = cn.pop();
-        if (cn.some((cond) => cond === false)) return false;
-        return value;
-      }
-      return cn;
-    })
-    .filter((cn) => !!cn)
-    .join(" ");
-  return { className };
-}
-
-function EndGame({ game }) {
-  const autofocus = useRef();
-
-  useEffect(() => {
-    if (autofocus.current) autofocus.current.focus();
-  }, [autofocus]);
-
-  return (
-    <div className="endgame">
-      <div className="endgame-modal">
-        {game.state("ENDED") && game.result("WON") && (
-          <div className="endgame-result icon-text">
-            <HappyIcon className="yellow" /> You won!
-          </div>
-        )}
-        {game.state("ENDED") && game.result("LOST") && (
-          <div className="endgame-result icon-text">
-            <SadIcon className="red" /> You Lost!
-          </div>
-        )}
-        <div className="endgame-actions">
-          <Link ref={autofocus} className="button icon-text" to="/game">
-            <ReloadIcon />
-            Play again
-          </Link>
-          <Link to="/results" className="button icon-text">
-            <MedalIcon />
-            Results
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
 }
