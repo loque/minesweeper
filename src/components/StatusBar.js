@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./StatusBar.scss";
-import { useConfig } from "../lib/config";
-import { msToMS } from "../lib/time";
+import useConfig from "../lib/useConfig";
+import { msToMS } from "../lib/utils";
 import {
   RiUser3Fill as UserIcon,
   RiFlag2Fill as FlagIcon,
@@ -9,21 +9,23 @@ import {
   RiFlashlightFill as DifficultyIcon,
 } from "react-icons/ri";
 
-function ElapsedTime({ startTime, run }) {
+function ElapsedTime({ startDateTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
   useEffect(() => {
     let intervalId;
     if (run) {
       intervalId = setInterval(() => {
-        setElapsedTime(msToMS(new Date() - startTime));
+        setElapsedTime(msToMS(new Date() - startDateTime));
       }, 300);
+    } else if (startDateTime === null) {
+      setElapsedTime("00:00");
     }
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [startTime, run]);
+  }, [startDateTime, run]);
   return (
     <span className="icon-text">
       <TimeIcon className="yellow" /> {elapsedTime}
@@ -39,14 +41,14 @@ export default function StatusBar({ game }) {
         <UserIcon /> {config.name}
       </span>
 
-      {game.meta && (
+      {game.state && (
         <div className="icon-text-group">
           <span className="icon-text p-right">
-            <FlagIcon className="red" /> {game.meta.placedFlags}
+            <FlagIcon className="red" /> {game.flagsCount}
           </span>
           <ElapsedTime
-            startTime={game.meta.startDateTime}
-            run={game.matches("playing")}
+            startDateTime={game.startDateTime}
+            run={game.state("PLAYING")}
           />
         </div>
       )}

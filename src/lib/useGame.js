@@ -1,67 +1,30 @@
-import { useEffect, useState } from "react";
-import { useMachine } from "@xstate/react";
-import { minesweeperMachine } from "./Minesweeper";
+import { useState, useEffect, useCallback } from "react";
+import Minesweeper from "../game/Minesweeper";
 
-export const configs = [{ rows: 10, cols: 10, mines: 11 }];
+export const levels = [
+  { rows: 10, cols: 10, mines: 20 },
+  { rows: 20, cols: 10, mines: 40 },
+  { rows: 30, cols: 10, mines: 60 },
+];
 
-export function useGame(level) {
-  const config = configs[level] || configs[configs.length - 1];
-  const [state, send] = useMachine(minesweeperMachine);
-  const [output, setOutput] = useState({ matches: () => false });
-
-  useEffect(() => {
-    if (state.matches("idle")) {
-      send("CONFIGURE", { config });
-    }
-  }, [config, send, state]);
+export default function useGame(level) {
+  const config = levels[level - 1] || levels[0];
+  const [game, setGame] = useState(() => new Minesweeper(config));
+  const [_, setTick] = useState(0); // eslint-disable-line no-unused-vars
 
   useEffect(() => {
-    if (
-      state.matches("idle") ||
-      state.matches("ready") ||
-      state.matches("playing.idle") ||
-      state.matches("ended")
-    ) {
-      const meta = {
-        placedFlags: state.context.board.list.filter((tile) =>
-          tile.matches("flagged")
-        ).length,
-        startDateTime: state.context.startDateTime,
-        // endDateTime: state.context.endDateTime,
-        // gameTime: state.context.endDateTime
-        //   ? state.context.endDateTime - state.context.startDateTime
-        //   : null,
-      };
+    const unsuscribe = game.subscribe(() => {
+      setTick((t) => t + 1);
+    });
+    return unsuscribe;
+  }, [game]);
 
-      const actions = {
-        flagTile(absIdx) {
-          send("FLAG", { absIdx });
-        },
-        unflagTile(absIdx) {
-          send("UNFLAG", { absIdx });
-        },
+  const reset = useCallback(
+    function reset() {
+      setGame(() => new Minesweeper(config));
+    },
+    [config]
+  );
 
-        revealTile(absIdx) {
-          send("REVEAL", { absIdx });
-        },
-
-        revealAdjacentTiles(absIdx) {
-          send("REVEAL_ADJACENT", { absIdx });
-        },
-      };
-      console.log("setting output");
-      setOutput({
-        matches: state.matches,
-        board: state.context.board.matrix,
-        meta,
-        actions,
-      });
-    }
-  }, [state, send]);
-
-  // TODO: we need to update the state **only** after the actions, specially
-  // recursive, ended. If not we are going to have serious performance issues.
-  // Only show updates on idle, ready, playing.idle, ended
-
-  return output;
+  return [game, reset];
 }

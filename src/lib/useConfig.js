@@ -10,12 +10,12 @@ export function ConfigProvider({ children }) {
   );
 }
 
-export const useConfig = () => {
+export default function useConfig() {
   return useContext(ConfigContext);
-};
+}
 
 const initialState = {
-  level: localStorage.getItem("level") || 0,
+  level: localStorage.getItem("level") || 1,
   name: localStorage.getItem("name") || "",
   results: JSON.parse(localStorage.getItem("results")) || [],
 };
@@ -33,7 +33,6 @@ function useProviderConfig() {
     setConfig((state) => ({ ...state, name }));
   }
 
-  // result: startTime, endTime, level, gameTime, status,
   function addResult(newResult) {
     setConfig((state) => {
       const { results } = state;
@@ -52,8 +51,7 @@ function useProviderConfig() {
 
   function clearResults() {
     setConfig((state) => {
-      let { results } = state;
-      results = [];
+      const results = [];
       localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });

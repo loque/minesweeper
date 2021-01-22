@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  padding-bottom: 4rem;
   &.disabled::after {
     content: "";
     position: absolute;
@@ -23,7 +24,7 @@
   background-color: #373737;
   border-radius: 4px;
   position: relative;
-  transition: transform 150ms ease-in-out;
+  transition: transform 100ms ease-in-out;
 
   &.hidden:not(.disabled) {
     cursor: pointer;

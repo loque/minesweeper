@@ -3,6 +3,10 @@
   justify-content: space-between;
   align-items: center;
   height: 4rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: #292425;
 }
 
 .icon-button {

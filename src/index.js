@@ -1,14 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { ConfigProvider } from "./lib/config";
+import { ConfigProvider } from "./lib/useConfig";
+import { RecoilRoot } from "recoil";
 // import reportWebVitals from "./reportWebVitals";
 
 ReactDOM.render(
   <React.StrictMode>
-    <ConfigProvider>
-      <App />
-    </ConfigProvider>
+    <RecoilRoot>
+      <ConfigProvider>
+        <App />
+      </ConfigProvider>
+    </RecoilRoot>
   </React.StrictMode>,
   document.getElementById("root")
 );
