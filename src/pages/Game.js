@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Game.scss";
 import useGame from "../lib/useGame";
-import { isEligibleForAdjacentReveal } from "../lib/Minesweeper";
+import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
 import useConfig from "../lib/useConfig";
-import useResize from "../utils/useResize";
+import useResize from "../lib/useResize";
 import {
   atom,
   useSetRecoilState,

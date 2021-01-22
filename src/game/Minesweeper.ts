@@ -1,4 +1,5 @@
 import Tile, { TileState } from "./Tile";
+import { shuffle } from "../lib/utils";
 
 enum GameResult {
   NONE = "NONE",
@@ -306,23 +307,4 @@ export function isEligibleForAdjacentReveal(tile: Tile): boolean {
   return (
     tile.state(TileState.REVEALED) && tile.value === adjFlags && possibileMines
   );
-}
-
-// from: https://stackoverflow.com/a/2450976/3622350
-function shuffle<T>(array: T[]): T[] {
-  let currIdx = array.length;
-
-  // While there remain elements to shuffle...
-  while (0 !== currIdx) {
-    // Pick a remaining element...
-    let randomIdx = Math.floor(Math.random() * currIdx);
-    currIdx--;
-
-    // And swap it with the current element.
-    let tmpVal = array[currIdx];
-    array[currIdx] = array[randomIdx];
-    array[randomIdx] = tmpVal;
-  }
-
-  return array;
 }

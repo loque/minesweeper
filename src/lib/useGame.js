@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import Minesweeper from "./Minesweeper";
+import Minesweeper from "../game/Minesweeper";
 
 export const configs = [{ rows: 10, cols: 10, mines: 20 }];
 

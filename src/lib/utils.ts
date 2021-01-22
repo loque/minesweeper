@@ -17,3 +17,22 @@ function numPad(str: string | number, length: number = 2) {
   }
   return str;
 }
+
+// from: https://stackoverflow.com/a/2450976/3622350
+export function shuffle<T>(array: T[]): T[] {
+  let currIdx = array.length;
+
+  // While there remain elements to shuffle...
+  while (0 !== currIdx) {
+    // Pick a remaining element...
+    let randomIdx = Math.floor(Math.random() * currIdx);
+    currIdx--;
+
+    // And swap it with the current element.
+    let tmpVal = array[currIdx];
+    array[currIdx] = array[randomIdx];
+    array[randomIdx] = tmpVal;
+  }
+
+  return array;
+}
