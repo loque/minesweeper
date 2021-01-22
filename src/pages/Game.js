@@ -28,12 +28,12 @@ import StatusBar from "../components/StatusBar";
 const tileMargin = 1.5;
 
 export default function Game() {
-  const config = useConfig();
-
   const location = useLocation();
   const prevLocationKey = useRef(location.key);
 
+  const config = useConfig();
   const [game, reset] = useGame(config.level);
+  const prevGameState = useRef();
 
   const boardRef = useRef();
   const [tileSize, setTileSize] = useState(0);
@@ -41,20 +41,19 @@ export default function Game() {
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
       prevLocationKey.current = location.key;
-      console.log("reset request");
       reset();
     }
   }, [reset, prevLocationKey, location.key]);
 
-  // const result = buildResult(game, config);
-  // useEffect(() => {
-  //   if (prevGameState.current !== game.state) {
-  //     prevGameState.current = game.state;
-  //     if (game.state('ended')) {
-  //       config.addResult(result);
-  //     }
-  //   }
-  // }, [prevGameState, game.state, config, result]);
+  const gameState = game.state();
+  useEffect(() => {
+    if (prevGameState.current !== gameState) {
+      prevGameState.current = gameState;
+      if (game.state("ENDED")) {
+        config.addResult(buildResult(game, config));
+      }
+    }
+  }, [prevGameState, game, config, gameState]);
 
   // Observe board width changes and calculate `tileSize`
   function onBoardResize(boardEl) {
@@ -189,16 +188,15 @@ export default function Game() {
   );
 }
 
-// function buildResult(game, config) {
-//   return {
-//     startTime: game.startDateTime,
-//     endTime: game.endDateTime,
-//     level: config.level,
-//     gameTime: game.gameTime,
-//     result: game.result,
-//     name: config.name,
-//   };
-// }
+function buildResult(game, config) {
+  return {
+    endDateTime: game.endDateTime.toJSON(),
+    level: config.level,
+    gameTime: game.gameTime,
+    result: game.result(),
+    name: config.name,
+  };
+}
 
 /**
  * 0 = none

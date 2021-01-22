@@ -12,8 +12,6 @@ import {
   RiEmotionUnhappyFill as SadIcon,
   RiTimerFill as TimeIcon,
   RiCalendarEventFill as CalendarIcon,
-  RiPlayMiniFill as PlayIcon,
-  RiStopMiniFill as StopIcon,
   RiCloseLine as ClearIcon,
 } from "react-icons/ri";
 
@@ -44,13 +42,7 @@ export default function Results() {
           <table className="results-table">
             <thead>
               <tr>
-                <td title="Time" className="hideOnMobile">
-                  <span>
-                    <TimeIcon />
-                    <span>Start/End</span>
-                  </span>
-                </td>
-                <td title="Date" className="showOnMobile">
+                <td title="Date">
                   <span>
                     <CalendarIcon />
                   </span>
@@ -58,10 +50,9 @@ export default function Results() {
                 <td title="Time" className="regular-width">
                   <span>
                     <TimeIcon />
-                    <span className="hideOnMobile">Game</span>
                   </span>
                 </td>
-                <td title="Difficulty" className="regular-width">
+                <td title="Level" className="regular-width">
                   <DifficultyIcon />
                 </td>
                 <td title="Result" className="regular-width">
@@ -76,22 +67,12 @@ export default function Results() {
               {config.results.slice(0, 10).map((res, resIdx) => {
                 return (
                   <tr key={resIdx}>
-                    <td className="hideOnMobile">
-                      <div className="time">
-                        <PlayIcon /> {res.startTime}
-                      </div>
-                      <div className="time">
-                        <StopIcon /> {res.endTime}
-                      </div>
-                    </td>
-                    <td className="showOnMobile">
-                      {res.startTime.split(", ")[0]}
-                    </td>
+                    <td>{new Date(res.endDateTime).toLocaleDateString()}</td>
                     <td>
                       <div>{msToMS(res.gameTime)}</div>
                     </td>
                     <td>
-                      <div>{res.difficulty}</div>
+                      <div>{res.level}</div>
                     </td>
                     <td>
                       <div className="center result">

@@ -45,6 +45,7 @@ function useProviderConfig() {
         if (a.gameTime > b.gameTime) return 1;
         return 0;
       });
+      console.log("add result", newResult, results);
       localStorage.setItem("results", JSON.stringify(results));
       return { ...state, results };
     });
