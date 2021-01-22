@@ -4,7 +4,6 @@ import "./Game.scss";
 import useGame from "../lib/useGame";
 import useConfig from "../lib/useConfig";
 import useResize from "../lib/useResize";
-import { bCN } from "../lib/utils";
 import EndGame from "../components/EndGame";
 import { scanState, scanTargetsSelector, tileSizeAtom } from "../game/states";
 import { useSetRecoilState, useRecoilState } from "recoil";
@@ -35,12 +34,10 @@ export default function Game() {
   }, [reset, prevLocationKey, location.key]);
 
   useEffect(() => {
-    const listener = (ev) => {
-      setGameState(ev.detail);
-    };
+    const listener = (ev) => setGameState(ev.detail);
     game.addEventListener("stateChange", listener);
     return () => game.removeEventListener("stateChange", listener);
-  }, [game.key]);
+  }, [game]);
 
   useEffect(() => {
     if (prevGameState.current !== gameState) {
@@ -126,7 +123,6 @@ export default function Game() {
       window.removeEventListener("mouseup", endScan);
     };
   }, [gameState, game, boardRef, tileSize, updateScanState, setScannedTargets]);
-  console.log("gameState", gameState);
 
   function mouseLeaveHandler() {
     setScannedTargets([]);
@@ -156,24 +152,25 @@ export default function Game() {
         <StatusBar game={game} />
 
         <div ref={boardRef} className="board" onMouseLeave={mouseLeaveHandler}>
-          {game.board &&
-            game.board.map((row, rowIdx) => {
-              return (
-                <div className="board-row" key={rowIdx}>
-                  {row.map((tile) => (
-                    <Tile
-                      key={tile.key}
-                      tile={tile}
-                      baseClassNames={tilesCNs}
-                      reveal={reveal}
-                      revealAdjacent={revealAdjacent}
-                      flag={flag}
-                      unflag={unflag}
-                    />
-                  ))}
-                </div>
-              );
-            })}
+          {game.board.map((row, rowIdx) => (
+            <div
+              key={rowIdx}
+              className="board-row"
+              onContextMenu={(ev) => ev.preventDefault()}
+            >
+              {row.map((tile) => (
+                <Tile
+                  key={tile.key}
+                  tile={tile}
+                  baseClassNames={tilesCNs}
+                  reveal={reveal}
+                  revealAdjacent={revealAdjacent}
+                  flag={flag}
+                  unflag={unflag}
+                />
+              ))}
+            </div>
+          ))}
         </div>
         {gameState === "ENDED" && <EndGame game={game} />}
       </div>
