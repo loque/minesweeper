@@ -14,18 +14,6 @@ import { tileMargin } from "../pages/Game";
 import { bCN } from "../lib/utils";
 import "../pages/Game.scss";
 
-/**
- * Changes that Tile should be notified of:
- *    state
- *        hidden => flagged
- *        flagged => hidden
- *        hidden => revealed
- *    value
- *        0 => n
- *    hasMine
- *        false => true
- *
- */
 export default function Tile({
   tile,
   baseClassNames,

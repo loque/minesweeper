@@ -26,7 +26,6 @@ interface Board {
   matrix: BoardMatrix;
 }
 
-type Subscription = () => void;
 type Cluster = Set<number>;
 
 let id = -1;
@@ -42,7 +41,6 @@ export default class Minesweeper extends EventTarget {
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
   #minesPlaced: boolean = false;
-  #subscriptions: Subscription[] = [];
 
   constructor(config: BoardConfig) {
     super();
@@ -118,15 +116,15 @@ export default class Minesweeper extends EventTarget {
     );
   }
 
-  reveal(absIdx: number, endIfMineIsFound = true): boolean {
-    if (this.state(GameState.ENDED)) return this.res(false);
+  reveal(absIdx: number, endIfMineIsFound = true) {
+    if (this.state(GameState.ENDED)) return;
 
     // We place mines just before the first move because
     // the first move should never be a mine
     if (this.placeMines(absIdx)) this.gameStart();
 
     const tile = this.#board.list[absIdx];
-    if (!tile.reveal()) return this.res(false);
+    if (!tile.reveal()) return;
 
     if (tile.hasMine && endIfMineIsFound) return this.gameLost();
     if (this.allNonMineTilesRevealed()) return this.gameWon();
@@ -138,8 +136,6 @@ export default class Minesweeper extends EventTarget {
     }
 
     if (this.allNonMineTilesRevealed()) return this.gameWon();
-
-    return this.res(true);
   }
 
   private getCluster(tile: Tile, cluster: Cluster = new Set()): Cluster {
@@ -158,20 +154,18 @@ export default class Minesweeper extends EventTarget {
     return cluster;
   }
 
-  revealAdjacent(absIdx: number): boolean {
-    if (this.state(GameState.ENDED)) return this.res(false);
+  revealAdjacent(absIdx: number) {
+    if (this.state(GameState.ENDED)) return;
 
     const tile = this.#board.list[absIdx];
 
-    if (!isEligibleForAdjacentReveal(tile)) return this.res(false);
+    if (!isEligibleForAdjacentReveal(tile)) return;
 
     const adjacentHidden = tile.adjacent.filter(
       (tl) => tl.state === TileState.HIDDEN
     );
 
-    const someAdjacentRevealed = adjacentHidden
-      .map((t) => t.reveal())
-      .some((res) => res);
+    adjacentHidden.map((t) => t.reveal()).some((res) => res);
 
     if (!!adjacentHidden.find((tl) => tl.hasMine)) {
       return this.gameLost();
@@ -193,17 +187,6 @@ export default class Minesweeper extends EventTarget {
         this.#board.list[adjAbsIdx].reveal();
       }
     }
-
-    return this.res(someAdjacentRevealed);
-  }
-
-  subscribe(callback: Subscription) {
-    const subs = this.#subscriptions;
-    subs.push(callback);
-    const callbackIdx = subs.length - 1;
-    return function unsuscribe() {
-      subs.splice(callbackIdx, 1);
-    };
   }
 
   private createEmptyBoard() {
@@ -302,11 +285,6 @@ export default class Minesweeper extends EventTarget {
       new CustomEvent("resultChange", { detail: this.#result })
     );
     return true;
-  }
-
-  private res(result: boolean): boolean {
-    if (result) this.#subscriptions.forEach((sub) => sub());
-    return result;
   }
 }
 

@@ -15,28 +15,13 @@ import Tile from "../components/Tile";
 
 export const tileMargin = 1.5;
 
-/**
- * Changes that Game needs to be notified about:
- *    state:
- *        idle
- *        ready (board is created)
- *        playing (startDateTime is set)
- *        ended
- *    board:
- *        when ready, render the tiles (no updates needed)
- *    flagsCount:
- *        could this be handled by StatusBar? Listening a recoil state
- *
- * What do we do with actions? (flag, unflag, reveal, revealAdjacent)
- */
-
 export default function Game() {
   const location = useLocation();
   const prevLocationKey = useRef(location.key);
 
   const config = useConfig();
   const [game, reset] = useGame(config.level);
-  const [gameState, setGameState] = useState();
+  const [gameState, setGameState] = useState(game.state());
   const prevGameState = useRef();
 
   const boardRef = useRef();
@@ -83,9 +68,9 @@ export default function Game() {
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
   useEffect(() => {
-    // if (["ready", "playing"].includes(gameState) === false) return;
+    if (["IDLE", "ENDED"].includes(gameState)) return;
 
-    function activateDetection(ev) {
+    function startScan(ev) {
       ev.preventDefault();
       if (ev.button === 0) {
         updateScanState(1);
@@ -100,7 +85,7 @@ export default function Game() {
       }
     }
 
-    function deactivateDetection(e) {
+    function endScan(e) {
       e.preventDefault();
       setScannedTargets([]);
       updateScanState(0);
@@ -134,13 +119,14 @@ export default function Game() {
       }
     }
 
-    window.addEventListener("mousedown", activateDetection);
-    window.addEventListener("mouseup", deactivateDetection);
+    window.addEventListener("mousedown", startScan);
+    window.addEventListener("mouseup", endScan);
     return () => {
-      window.removeEventListener("mousedown", activateDetection);
-      window.removeEventListener("mouseup", deactivateDetection);
+      window.removeEventListener("mousedown", startScan);
+      window.removeEventListener("mouseup", endScan);
     };
-  }, [game, boardRef, tileSize, updateScanState, setScannedTargets]);
+  }, [gameState, game, boardRef, tileSize, updateScanState, setScannedTargets]);
+  console.log("gameState", gameState);
 
   function mouseLeaveHandler() {
     setScannedTargets([]);
@@ -169,11 +155,7 @@ export default function Game() {
         <Header />
         <StatusBar game={game} />
 
-        <div
-          ref={boardRef}
-          {...bCN("board", [gameState === "ENDED", "disabled"])}
-          onMouseLeave={mouseLeaveHandler}
-        >
+        <div ref={boardRef} className="board" onMouseLeave={mouseLeaveHandler}>
           {game.board &&
             game.board.map((row, rowIdx) => {
               return (
