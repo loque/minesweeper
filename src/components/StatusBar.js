@@ -35,7 +35,7 @@ function ElapsedTime({ startDateTime, run }) {
 
 export default function StatusBar({ game }) {
   const config = useConfig();
-  const [gameState, setGameState] = useState();
+  const [gameState, setGameState] = useState(game.state());
   const [flagsCount, setFlagsCount] = useState(game.totalMines);
 
   useEffect(() => {
