@@ -8,6 +8,7 @@ import {
   RiFlashlightFill as DifficultyIcon,
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
+import { levels } from "../lib/useGame";
 
 export default function Setup() {
   const history = useHistory();
@@ -23,12 +24,12 @@ export default function Setup() {
     config.setName(name);
   }
 
-  function selectDifficulty(level) {
-    return () => config.setDifficulty(level);
+  function selectLevel(level) {
+    return () => config.setLevel(level);
   }
 
-  function diffClassName(level) {
-    return config.difficulty === level ? "selected" : "";
+  function levelClassName(level) {
+    return config.level === level ? "selected" : "";
   }
 
   return (
@@ -57,15 +58,18 @@ export default function Setup() {
             <DifficultyIcon /> Select difficulty level
           </h3>
           <div className="section-body difficulty">
-            {/* {Object.keys(DifficultyLevel).map((level) => (
-              <button
-                key={level}
-                className={diffClassName(level)}
-                onClick={selectDifficulty(level)}
-              >
-                {level}
-              </button>
-            ))} */}
+            {levels.map((_, levelIdx) => {
+              const level = levelIdx + 1;
+              return (
+                <button
+                  key={levelIdx}
+                  className={levelClassName(level)}
+                  onClick={selectLevel(level)}
+                >
+                  {level}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="play-button-wrapper">
