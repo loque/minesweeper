@@ -6,7 +6,7 @@
 
   &.hidden:not(.disabled) {
     cursor: pointer;
-    &.inspecting {
+    &.scanned {
       background-color: #4d4d4d;
       transform: scale(0.94);
     }
@@ -31,7 +31,7 @@
   &.flagged {
     &:not(.disabled) {
       cursor: pointer;
-      &.inspecting {
+      &.scanned {
         background-color: #4d4d4d;
         transform: scale(0.94);
       }

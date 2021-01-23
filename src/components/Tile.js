@@ -67,7 +67,7 @@ export default function Tile({
     [tile.hasMine, "hasMine"],
     color[Math.min(tile.value, color.length - 1)],
     [tile.value === 0, "empty"],
-    [isBeingScanned, "inspecting"],
+    [isBeingScanned, "scanned"],
     [tile.causeOfDefeat, "causeOfDefeat"],
   ];
   return (
