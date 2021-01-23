@@ -10,6 +10,7 @@ import { tileMargin } from "../pages/Game";
 import { bCN } from "../lib/utils";
 import "../pages/Game.scss";
 import tileImg from "./tile.png";
+import "./Tile.scss";
 
 export default function Tile({
   tile,

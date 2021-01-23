@@ -6,6 +6,7 @@ import {
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
+import "./EndGame.scss";
 
 export default function EndGame({ game }) {
   const autofocus = useRef();

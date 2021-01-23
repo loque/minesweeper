@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState, forwardRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./Game.scss";
+import { useSetRecoilState } from "recoil";
+import { scanState, scanTargetsSelector } from "../game/states";
 import useGame from "../lib/useGame";
 import useConfig from "../lib/useConfig";
-import EndGame from "../components/EndGame";
-import { scanState, scanTargetsSelector } from "../game/states";
-import { useSetRecoilState } from "recoil";
 
 import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
-import Tile from "../components/Tile";
+import EndGame from "../components/EndGame";
+import Board from "../components/Board";
 
 export const tileMargin = 1.5;
 
@@ -129,56 +129,6 @@ export default function Game() {
     </div>
   );
 }
-
-const Board = forwardRef(function Board({ game, gameState }, ref) {
-  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
-  const tilesInRow = game.board[0].length;
-
-  function mouseLeaveHandler() {
-    setScannedTargets([]);
-  }
-
-  function reveal(absIdx) {
-    game.reveal(absIdx);
-  }
-
-  function revealAdjacent(absIdx) {
-    game.revealAdjacent(absIdx);
-  }
-
-  function flag(absIdx) {
-    game.flag(absIdx);
-  }
-
-  function unflag(absIdx) {
-    game.unflag(absIdx);
-  }
-  const tilesCNs = ["board-tile", [gameState === "ENDED", "disabled"]];
-  return (
-    <div ref={ref} className="board" onMouseLeave={mouseLeaveHandler}>
-      {game.board.map((row, rowIdx) => (
-        <div
-          key={rowIdx}
-          className="board-row"
-          onContextMenu={(ev) => ev.preventDefault()}
-        >
-          {row.map((tile) => (
-            <Tile
-              key={tile.key}
-              tile={tile}
-              baseClassNames={tilesCNs}
-              reveal={reveal}
-              revealAdjacent={revealAdjacent}
-              flag={flag}
-              unflag={unflag}
-              tilesInRow={tilesInRow}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-});
 
 function buildResult(game, config) {
   return {
