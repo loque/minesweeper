@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   RiRefreshLine as ReloadIcon,
@@ -7,21 +7,12 @@ import {
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
 import "./EndGame.scss";
+import { useGameState, useGameResult } from "../lib/useGame";
 
 export default function EndGame({ game }) {
   const autofocus = useRef();
-  const [gameState, setGameState] = useState(() => game.state());
-  const [gameResult, setGameResult] = useState(() => game.result());
-
-  useEffect(() => {
-    const clean = game.subscribe("stateChange", setGameState);
-    return () => clean();
-  }, [game]);
-
-  useEffect(() => {
-    const clean = game.subscribe("resultChange", setGameResult);
-    return () => clean();
-  }, [game]);
+  const [gameState] = useGameState(game);
+  const gameResult = useGameResult(game);
 
   useEffect(() => {
     if (autofocus.current) autofocus.current.focus();

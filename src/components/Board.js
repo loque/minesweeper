@@ -1,13 +1,16 @@
 import { forwardRef } from "react";
 import { useSetRecoilState } from "recoil";
-import { scanTargetsSelector } from "../game/states";
 import "./Board.scss";
+import { scanTargetsSelector } from "../game/states";
+import { useGameState } from "../lib/useGame";
 import Tile from "./Tile";
 
-export default forwardRef(function Board({ game, gameState }, ref) {
-  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
+export default forwardRef(function Board({ game }, ref) {
+  const [gameState] = useGameState(game);
+
   const tilesInRow = game.board[0].length;
 
+  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
   function mouseLeaveHandler() {
     setScannedTargets([]);
   }
@@ -27,7 +30,7 @@ export default forwardRef(function Board({ game, gameState }, ref) {
   function unflag(absIdx) {
     game.unflag(absIdx);
   }
-  const tilesCNs = ["tile", [gameState === "ENDED", "disabled"]];
+
   return (
     <div ref={ref} className="board" onMouseLeave={mouseLeaveHandler}>
       {game.board.map((row, rowIdx) => (
@@ -40,11 +43,11 @@ export default forwardRef(function Board({ game, gameState }, ref) {
             <Tile
               key={tile.key}
               tile={tile}
-              baseClassNames={tilesCNs}
               reveal={reveal}
               revealAdjacent={revealAdjacent}
               flag={flag}
               unflag={unflag}
+              gameState={gameState}
               tilesInRow={tilesInRow}
             />
           ))}

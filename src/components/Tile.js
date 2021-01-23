@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
 import { scanTargetsSelector, tileIsScanned } from "../game/states";
 import { useSetRecoilState, useRecoilValue } from "recoil";
@@ -6,29 +5,22 @@ import {
   RiFlag2Fill as FlagIcon,
   RiFocus3Fill as MineIcon,
 } from "react-icons/ri";
-import { tileMargin } from "../pages/Game";
-import { bCN } from "../lib/utils";
-import "../pages/Game.scss";
-import tileImg from "./tile.png";
 import "./Tile.scss";
+import tileImg from "./tile.png";
+import { bCN } from "../lib/utils";
+import { tileMargin } from "../pages/Game";
+import { useTileState } from "../lib/useGame";
 
 export default function Tile({
   tile,
-  baseClassNames,
   reveal,
   revealAdjacent,
   flag,
   unflag,
+  gameState,
   tilesInRow,
 }) {
-  const [tileState, setTileState] = useState(tile.state);
-
-  useEffect(() => {
-    const clean = tile.subscribe("stateChange", setTileState);
-    return () => clean();
-  }, [tile]);
-
-  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
+  const tileState = useTileState(tile);
   const isBeingScanned = useRecoilValue(tileIsScanned(tile.absIdx));
 
   function mouseUpHandler(ev) {
@@ -43,6 +35,7 @@ export default function Tile({
     }
   }
 
+  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
   function mouseEnterHandler(ev) {
     const nextTargets = [tile.absIdx].concat(
       tile.adjacent.map((tl) => tl.absIdx)
@@ -60,7 +53,8 @@ export default function Tile({
   }
 
   const tileCNs = [
-    ...baseClassNames,
+    "tile",
+    [gameState === "ENDED", "disabled"],
     [tileState === "HIDDEN", "hidden"],
     [tileState === "FLAGGED", "flagged"],
     [tileState === "REVEALED", "revealed"],
@@ -70,9 +64,9 @@ export default function Tile({
     [isBeingScanned, "scanned"],
     [tile.causeOfDefeat, "causeOfDefeat"],
   ];
+
   return (
     <div
-      key={tile.absIdx}
       {...bCN(tileCNs)}
       style={{
         width: `calc(${100 / tilesInRow}% - ${tileMargin * 2}px)`,

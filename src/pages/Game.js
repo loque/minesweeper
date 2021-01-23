@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import "./Game.scss";
 import { useSetRecoilState } from "recoil";
 import { scanState, scanTargetsSelector } from "../game/states";
-import useGame from "../lib/useGame";
+import useGame, { useGameState } from "../lib/useGame";
 import useConfig from "../lib/useConfig";
 
 import Header from "../components/Header";
@@ -14,16 +14,16 @@ import Board from "../components/Board";
 export const tileMargin = 1.5;
 
 export default function Game() {
-  const location = useLocation();
-  const prevLocationKey = useRef(location.key);
-
   const config = useConfig();
+  const boardRef = useRef();
   const [game, reset] = useGame(config.level);
-  const [gameState, setGameState] = useState(game.state());
+  const [gameState, setGameState] = useGameState(game);
   const prevGameState = useRef();
 
-  const boardRef = useRef();
-
+  // Call `reset()` when we re-enter the location. When the user clicks on
+  // `Play` on `EndGame`
+  const location = useLocation();
+  const prevLocationKey = useRef(location.key);
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
       prevLocationKey.current = location.key;
@@ -31,6 +31,8 @@ export default function Game() {
     }
   }, [reset, prevLocationKey, location.key]);
 
+  // If game changes (on reset) the subscription from `useGameState` is not
+  // called so we need to manually check if the state has changed.
   useEffect(() => {
     setGameState((currGameState) => {
       if (currGameState !== game.state()) {
@@ -38,13 +40,9 @@ export default function Game() {
       }
       return currGameState;
     });
-  }, [game]);
+  }, [game, setGameState]);
 
-  useEffect(() => {
-    const clean = game.subscribe("stateChange", setGameState);
-    return () => clean();
-  }, [game]);
-
+  // When game ends, store the result
   useEffect(() => {
     if (prevGameState.current !== gameState) {
       prevGameState.current = gameState;
@@ -70,7 +68,7 @@ export default function Game() {
 
       if ([0, 1].includes(ev.button)) {
         // Make the first detection on mousedown because if not the users would
-        // not see the detection working until they move the mouse, which is odd.
+        // not see the detection working until they move the mouse, which is odd
         detectScannedTile(ev);
       }
     }
@@ -122,8 +120,8 @@ export default function Game() {
     <div className="view">
       <div className="container">
         <Header />
-        <StatusBar game={game} />
-        <Board ref={boardRef} game={game} gameState={gameState} />
+        <StatusBar key={"statusbar:" + game.key} game={game} />
+        <Board ref={boardRef} game={game} />
         {gameState === "ENDED" && <EndGame game={game} />}
       </div>
     </div>

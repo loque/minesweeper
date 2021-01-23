@@ -2,9 +2,8 @@ import "./Results.scss";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
 import { Link } from "react-router-dom";
-import { RiRefreshLine as ReloadIcon } from "react-icons/ri";
-
 import {
+  RiRefreshLine as ReloadIcon,
   RiUser3Fill as UserIcon,
   RiMedalFill as MedalIcon,
   RiFlashlightFill as DifficultyIcon,
@@ -14,6 +13,7 @@ import {
   RiCalendarEventFill as CalendarIcon,
   RiCloseLine as ClearIcon,
 } from "react-icons/ri";
+import { msToMS } from "../lib/utils";
 
 export default function Results() {
   const config = useConfig();
@@ -127,24 +127,4 @@ function sortResults(a, b) {
   if (a.gameTime > b.gameTime) return 1;
 
   return 0;
-}
-
-// from: https://stackoverflow.com/a/29816921/3622350
-function msToMS(ms) {
-  // Convert to seconds:
-  let seconds = ms / 1000;
-  // Extract minutes:
-  let minutes = Math.floor(seconds / 60); // 60 seconds in 1 minute
-  // Keep only seconds not extracted to minutes:
-  seconds = seconds % 60;
-  return numPad(minutes) + ":" + numPad(Math.floor(seconds));
-}
-
-function numPad(str, length = 2) {
-  str = str + "";
-  if (str.length < length) {
-    let diff = length - str.length;
-    str = "0".repeat(diff) + str;
-  }
-  return str;
 }

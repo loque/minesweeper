@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import "./StatusBar.scss";
-import useConfig from "../lib/useConfig";
-import { msToMS } from "../lib/utils";
 import {
   RiUser3Fill as UserIcon,
   RiFlag2Fill as FlagIcon,
   RiTimerFill as TimeIcon,
   RiFlashlightFill as DifficultyIcon,
 } from "react-icons/ri";
+import { useGameState, useFlagsCount } from "../lib/useGame";
+import useConfig from "../lib/useConfig";
+import { msToMS } from "../lib/utils";
 
 function ElapsedTime({ startDateTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
@@ -35,23 +36,8 @@ function ElapsedTime({ startDateTime, run }) {
 
 export default function StatusBar({ game }) {
   const config = useConfig();
-  const [gameState, setGameState] = useState(game.state());
-  const [flagsCount, setFlagsCount] = useState(game.totalMines);
-
-  useEffect(() => {
-    const clean = game.subscribe("stateChange", (state) => {
-      if (state === "READY") {
-        setFlagsCount(game.flagsCount);
-      }
-      setGameState(state);
-    });
-    return () => clean();
-  }, [game]);
-
-  useEffect(() => {
-    const clean = game.subscribe("flagsCountChange", setFlagsCount);
-    return () => clean();
-  }, [game]);
+  const [gameState] = useGameState(game);
+  const flagsCount = useFlagsCount(game);
 
   return (
     <div className="status-bar">
