@@ -83,7 +83,7 @@ export default function Setup() {
             onClick={() => history.push("/game")}
             disabled={config.username.length !== 3}
           >
-            Start game
+            Play
             <PlayIcon className="yellow" />
           </button>
         </div>
