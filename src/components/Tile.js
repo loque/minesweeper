@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
-import {
-  scanTargetsSelector,
-  tileIsScanned,
-  tileSizeAtom,
-} from "../game/states";
+import { scanTargetsSelector, tileIsScanned } from "../game/states";
 import { useSetRecoilState, useRecoilValue } from "recoil";
 import {
   RiFlag2Fill as FlagIcon,
@@ -13,6 +9,7 @@ import {
 import { tileMargin } from "../pages/Game";
 import { bCN } from "../lib/utils";
 import "../pages/Game.scss";
+import tileImg from "./tile.png";
 
 export default function Tile({
   tile,
@@ -21,20 +18,18 @@ export default function Tile({
   revealAdjacent,
   flag,
   unflag,
+  tilesInRow,
 }) {
   const [tileState, setTileState] = useState(tile.state);
 
   useEffect(() => {
-    const listener = (ev) => {
-      setTileState(ev.detail);
-    };
+    const listener = (ev) => setTileState(ev.detail);
     tile.addEventListener("stateChange", listener);
     return () => tile.removeEventListener("stateChange", listener);
   }, [tile]);
 
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
   const isBeingScanned = useRecoilValue(tileIsScanned(tile.absIdx));
-  const size = useRecoilValue(tileSizeAtom);
 
   function mouseUpHandler(ev) {
     if (ev.button === 0) {
@@ -75,8 +70,7 @@ export default function Tile({
       key={tile.absIdx}
       {...bCN(tileCNs)}
       style={{
-        width: size + "px",
-        height: size + "px",
+        width: `calc(${100 / tilesInRow}% - ${tileMargin * 2}px)`,
         margin: tileMargin + "px",
         fontSize: tileMargin + "em",
       }}
@@ -84,6 +78,11 @@ export default function Tile({
       onMouseEnter={mouseEnterHandler}
       onContextMenu={contextMenuHandler}
     >
+      <img
+        src={tileImg}
+        alt="Tile"
+        style={{ width: "100%", display: "block" }}
+      />
       <div className="board-tile-content">
         {tileState === "REVEALED" &&
           !tile.hasMine &&

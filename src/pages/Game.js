@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef } from "react";
 import { useLocation } from "react-router-dom";
 import "./Game.scss";
 import useGame from "../lib/useGame";
 import useConfig from "../lib/useConfig";
-import useResize from "../lib/useResize";
 import EndGame from "../components/EndGame";
-import { scanState, scanTargetsSelector, tileSizeAtom } from "../game/states";
-import { useSetRecoilState, useRecoilState } from "recoil";
+import { scanState, scanTargetsSelector } from "../game/states";
+import { useSetRecoilState } from "recoil";
 
 import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
@@ -24,7 +23,6 @@ export default function Game() {
   const prevGameState = useRef();
 
   const boardRef = useRef();
-  const [tileSize, setTileSize] = useRecoilState(tileSizeAtom);
 
   useEffect(() => {
     if (prevLocationKey.current !== location.key) {
@@ -57,19 +55,6 @@ export default function Game() {
     }
   }, [prevGameState, game, config, gameState]);
 
-  // Observe board width changes and calculate `tileSize`
-  function onBoardResize(boardEl) {
-    // We have to check if board has children because they may not be
-    // mounted yet
-    if (boardEl.children[0]) {
-      const colsCount = boardEl.children[0].children.length;
-      const { width } = boardEl.getBoundingClientRect();
-      const nextTileSize = width / colsCount - tileMargin * 2;
-      setTileSize(nextTileSize);
-    }
-  }
-  useResize(boardRef, onBoardResize);
-
   const updateScanState = useSetRecoilState(scanState);
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
@@ -100,6 +85,7 @@ export default function Game() {
     function detectScannedTile(ev) {
       const bodyRect = document.body.getBoundingClientRect();
       const boardRect = boardRef.current.getBoundingClientRect();
+      const tilesInRow = boardRef.current.children[0].children.length;
 
       const absLeft = boardRect.left - bodyRect.left;
       const absTop = boardRect.top - bodyRect.top;
@@ -114,7 +100,7 @@ export default function Game() {
         mouseY >= 0 &&
         mouseY < boardRect.height
       ) {
-        const tileSpace = tileSize + tileMargin * 2;
+        const tileSpace = boardRect.width / tilesInRow;
         const colIdx = Math.floor(mouseX / tileSpace);
         const rowIdx = Math.floor(mouseY / tileSpace);
         const tile = game.board[rowIdx][colIdx];
@@ -131,7 +117,23 @@ export default function Game() {
       window.removeEventListener("mousedown", startScan);
       window.removeEventListener("mouseup", endScan);
     };
-  }, [gameState, game, boardRef, tileSize, updateScanState, setScannedTargets]);
+  }, [gameState, game, boardRef, updateScanState, setScannedTargets]);
+
+  return (
+    <div className="view">
+      <div className="container board-container">
+        <Header />
+        <StatusBar game={game} />
+        <Board ref={boardRef} game={game} gameState={gameState} />
+        {gameState === "ENDED" && <EndGame game={game} />}
+      </div>
+    </div>
+  );
+}
+
+const Board = forwardRef(function Board({ game, gameState }, ref) {
+  const setScannedTargets = useSetRecoilState(scanTargetsSelector);
+  const tilesInRow = game.board[0].length;
 
   function mouseLeaveHandler() {
     setScannedTargets([]);
@@ -152,40 +154,32 @@ export default function Game() {
   function unflag(absIdx) {
     game.unflag(absIdx);
   }
-
   const tilesCNs = ["board-tile", [gameState === "ENDED", "disabled"]];
   return (
-    <div className="view">
-      <div className="container board-container">
-        <Header />
-        <StatusBar game={game} />
-
-        <div ref={boardRef} className="board" onMouseLeave={mouseLeaveHandler}>
-          {game.board.map((row, rowIdx) => (
-            <div
-              key={rowIdx}
-              className="board-row"
-              onContextMenu={(ev) => ev.preventDefault()}
-            >
-              {row.map((tile) => (
-                <Tile
-                  key={tile.key}
-                  tile={tile}
-                  baseClassNames={tilesCNs}
-                  reveal={reveal}
-                  revealAdjacent={revealAdjacent}
-                  flag={flag}
-                  unflag={unflag}
-                />
-              ))}
-            </div>
+    <div ref={ref} className="board" onMouseLeave={mouseLeaveHandler}>
+      {game.board.map((row, rowIdx) => (
+        <div
+          key={rowIdx}
+          className="board-row"
+          onContextMenu={(ev) => ev.preventDefault()}
+        >
+          {row.map((tile) => (
+            <Tile
+              key={tile.key}
+              tile={tile}
+              baseClassNames={tilesCNs}
+              reveal={reveal}
+              revealAdjacent={revealAdjacent}
+              flag={flag}
+              unflag={unflag}
+              tilesInRow={tilesInRow}
+            />
           ))}
         </div>
-        {gameState === "ENDED" && <EndGame game={game} />}
-      </div>
+      ))}
     </div>
   );
-}
+});
 
 function buildResult(game, config) {
   return {
