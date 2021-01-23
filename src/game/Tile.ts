@@ -4,8 +4,13 @@ export enum TileState {
   REVEALED = "REVEALED",
 }
 
+enum EventName {
+  "stateChange" = "stateChange",
+}
+type EventCallback = (payload: any) => void;
+
 let counter = 0;
-export default class Tile extends EventTarget {
+export default class Tile {
   #key: string;
   #state: TileState = TileState.HIDDEN;
   #absIdx: number = 0;
@@ -13,13 +18,16 @@ export default class Tile extends EventTarget {
   #colIdx: number = 0;
   hasMine: boolean = false;
   #adjacent: Tile[] = [];
+  #subscriptions: { [key in EventName]: EventCallback[] };
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
-    super();
     this.#key = gameKey + ":tile" + counter++;
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
     this.#colIdx = colIdx;
+    this.#subscriptions = {
+      [EventName.stateChange]: [],
+    };
   }
 
   get key() {
@@ -57,9 +65,7 @@ export default class Tile extends EventTarget {
   flag(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.FLAGGED;
-      this.dispatchEvent(
-        new CustomEvent("stateChange", { detail: this.#state })
-      );
+      this.dispatch(EventName.stateChange, this.#state);
       return true;
     }
     return false;
@@ -68,9 +74,7 @@ export default class Tile extends EventTarget {
   unflag(): boolean {
     if (this.#state === TileState.FLAGGED) {
       this.#state = TileState.HIDDEN;
-      this.dispatchEvent(
-        new CustomEvent("stateChange", { detail: this.#state })
-      );
+      this.dispatch(EventName.stateChange, this.#state);
       return true;
     }
     return false;
@@ -79,12 +83,23 @@ export default class Tile extends EventTarget {
   reveal(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.REVEALED;
-      this.dispatchEvent(
-        new CustomEvent("stateChange", { detail: this.#state })
-      );
+      this.dispatch(EventName.stateChange, this.#state);
       return true;
     }
     return false;
+  }
+
+  subscribe(evName: EventName, callback: EventCallback): () => void {
+    const subscriptionIdx = this.#subscriptions[evName].length;
+    this.#subscriptions[evName].push(callback);
+    return () => {
+      this.#subscriptions[evName].splice(subscriptionIdx, 1);
+    };
+  }
+
+  private dispatch(evName: EventName, payload: any) {
+    const callbacks = this.#subscriptions[evName];
+    callbacks.forEach((callback) => callback(payload));
   }
 
   log() {

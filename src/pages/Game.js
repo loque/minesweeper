@@ -41,9 +41,8 @@ export default function Game() {
   }, [game]);
 
   useEffect(() => {
-    const listener = (ev) => setGameState(ev.detail);
-    game.addEventListener("stateChange", listener);
-    return () => game.removeEventListener("stateChange", listener);
+    const clean = game.subscribe("stateChange", setGameState);
+    return () => clean();
   }, [game]);
 
   useEffect(() => {

@@ -27,12 +27,18 @@ interface Board {
 }
 
 type Cluster = Set<number>;
+enum EventName {
+  "stateChange" = "stateChange",
+  "resultChange" = "resultChange",
+  "flagsCountChange" = "flagsCountChange",
+}
+type EventCallback = (payload: any) => void;
 
 let id = 0;
 function getId() {
   return id++;
 }
-export default class Minesweeper extends EventTarget {
+export default class Minesweeper {
   #key: string = "";
   #state: GameState = GameState.IDLE;
   #result: GameResult = GameResult.NONE;
@@ -41,11 +47,17 @@ export default class Minesweeper extends EventTarget {
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
   #minesPlaced: boolean = false;
+  #subscriptions: { [key in EventName]: EventCallback[] };
 
   constructor(config: BoardConfig) {
-    super();
     this.key = "game" + getId();
     this.#config = config;
+    this.#subscriptions = {
+      [EventName.stateChange]: [],
+      [EventName.resultChange]: [],
+      [EventName.flagsCountChange]: [],
+    };
+
     this.createEmptyBoard();
     this.setAdjacent();
     this.gameReady();
@@ -65,6 +77,13 @@ export default class Minesweeper extends EventTarget {
 
   get totalMines(): number {
     return this.#config.mines;
+  }
+
+  get flagsCount(): number {
+    return (
+      this.#config.mines -
+      this.#board.list.filter((tl) => tl.state === TileState.FLAGGED).length
+    );
   }
 
   get startDateTime() {
@@ -96,29 +115,21 @@ export default class Minesweeper extends EventTarget {
   flag(absIdx: number) {
     if (this.state(GameState.ENDED)) return;
     this.#board.list[absIdx].flag();
-    this.pubFlagsCount();
+    this.dispatchFlagsCount();
   }
 
   unflag(absIdx: number) {
     if (this.state(GameState.ENDED)) return;
     this.#board.list[absIdx].unflag();
-    this.pubFlagsCount();
+    this.dispatchFlagsCount();
   }
 
-  private pubFlagsCount() {
-    this.dispatchEvent(
-      new CustomEvent("flagsCountChange", {
-        detail:
-          this.#config.mines -
-          this.#board.list.filter((tl) => tl.state === TileState.FLAGGED)
-            .length,
-      })
-    );
+  private dispatchFlagsCount() {
+    this.dispatch(EventName.flagsCountChange, this.flagsCount);
   }
 
   reveal(absIdx: number, endIfMineIsFound = true) {
     if (this.state(GameState.ENDED)) return;
-
     // We place mines just before the first move because
     // the first move should never be a mine
     if (this.placeMines(absIdx)) this.gameStart();
@@ -254,14 +265,14 @@ export default class Minesweeper extends EventTarget {
 
   private gameReady() {
     this.#state = GameState.READY;
-    this.dispatchEvent(new CustomEvent("stateChange", { detail: this.#state }));
+    this.dispatch(EventName.stateChange, this.#state);
     return true;
   }
 
   private gameStart() {
     this.#startDateTime = new Date();
     this.#state = GameState.PLAYING;
-    this.dispatchEvent(new CustomEvent("stateChange", { detail: this.#state }));
+    this.dispatch(EventName.stateChange, this.#state);
     return true;
   }
 
@@ -269,10 +280,8 @@ export default class Minesweeper extends EventTarget {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
     this.#result = GameResult.LOST;
-    this.dispatchEvent(new CustomEvent("stateChange", { detail: this.#state }));
-    this.dispatchEvent(
-      new CustomEvent("resultChange", { detail: this.#result })
-    );
+    this.dispatch(EventName.stateChange, this.#state);
+    this.dispatch(EventName.resultChange, this.#result);
     return true;
   }
 
@@ -280,11 +289,24 @@ export default class Minesweeper extends EventTarget {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
     this.#result = GameResult.WON;
-    this.dispatchEvent(new CustomEvent("stateChange", { detail: this.#state }));
-    this.dispatchEvent(
-      new CustomEvent("resultChange", { detail: this.#result })
-    );
+    this.dispatch(EventName.stateChange, this.#state);
+    this.dispatch(EventName.resultChange, this.#result);
     return true;
+  }
+
+  subscribe(evName: EventName, callback: EventCallback): () => void {
+    const subscriptionIdx = this.#subscriptions[evName].length;
+    this.#subscriptions[evName].push(callback);
+    return () => {
+      this.#subscriptions[evName].splice(subscriptionIdx, 1);
+    };
+  }
+
+  private dispatch(evName: EventName, payload: any) {
+    const callbacks = this.#subscriptions[evName];
+    setTimeout(() => {
+      callbacks.forEach((callback) => callback(payload));
+    }, 0);
   }
 }
 

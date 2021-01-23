@@ -39,16 +39,18 @@ export default function StatusBar({ game }) {
   const [flagsCount, setFlagsCount] = useState(game.totalMines);
 
   useEffect(() => {
-    const stateListener = (ev) => setGameState(ev.detail);
-    game.addEventListener("stateChange", stateListener);
-    return () => game.removeEventListener("stateChange", stateListener);
+    const clean = game.subscribe("stateChange", (state) => {
+      if (state === "READY") {
+        setFlagsCount(game.flagsCount);
+      }
+      setGameState(state);
+    });
+    return () => clean();
   }, [game]);
 
   useEffect(() => {
-    const flagsCountListener = (ev) => setFlagsCount(ev.detail);
-    game.addEventListener("flagsCountChange", flagsCountListener);
-    return () =>
-      game.removeEventListener("flagsCountChange", flagsCountListener);
+    const clean = game.subscribe("flagsCountChange", setFlagsCount);
+    return () => clean();
   }, [game]);
 
   return (

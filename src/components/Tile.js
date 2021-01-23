@@ -23,9 +23,8 @@ export default function Tile({
   const [tileState, setTileState] = useState(tile.state);
 
   useEffect(() => {
-    const listener = (ev) => setTileState(ev.detail);
-    tile.addEventListener("stateChange", listener);
-    return () => tile.removeEventListener("stateChange", listener);
+    const clean = tile.subscribe("stateChange", setTileState);
+    return () => clean();
   }, [tile]);
 
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
@@ -33,9 +32,13 @@ export default function Tile({
 
   function mouseUpHandler(ev) {
     if (ev.button === 0) {
-      if (tileState === "HIDDEN") reveal(tile.absIdx);
+      if (tileState === "HIDDEN") {
+        reveal(tile.absIdx);
+      }
     } else if (ev.button === 1) {
-      if (isEligibleForAdjacentReveal(tile)) revealAdjacent(tile.absIdx);
+      if (isEligibleForAdjacentReveal(tile)) {
+        revealAdjacent(tile.absIdx);
+      }
     }
   }
 

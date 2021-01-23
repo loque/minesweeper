@@ -13,15 +13,13 @@ export default function EndGame({ game }) {
   const [gameResult, setGameResult] = useState(() => game.result());
 
   useEffect(() => {
-    const callback = (ev) => setGameState(ev.detail);
-    game.addEventListener("stateChange", callback);
-    return () => game.removeEventListener("stateChange", callback);
+    const clean = game.subscribe("stateChange", setGameState);
+    return () => clean();
   }, [game]);
 
   useEffect(() => {
-    const callback = (ev) => setGameResult(ev.detail);
-    game.addEventListener("resultChange", callback);
-    return () => game.removeEventListener("resultChange", callback);
+    const clean = game.subscribe("resultChange", setGameResult);
+    return () => clean();
   }, [game]);
 
   useEffect(() => {
