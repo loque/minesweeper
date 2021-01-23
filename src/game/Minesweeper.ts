@@ -28,7 +28,7 @@ interface Board {
 
 type Cluster = Set<number>;
 
-let id = -1;
+let id = 0;
 function getId() {
   return id++;
 }
