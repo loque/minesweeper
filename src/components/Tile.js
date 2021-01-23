@@ -68,6 +68,7 @@ export default function Tile({
     color[Math.min(tile.value, color.length - 1)],
     [tile.value === 0, "empty"],
     [isBeingScanned, "inspecting"],
+    [tile.causeOfDefeat, "causeOfDefeat"],
   ];
   return (
     <div

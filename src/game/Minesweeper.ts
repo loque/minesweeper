@@ -137,7 +137,10 @@ export default class Minesweeper {
     const tile = this.#board.list[absIdx];
     if (!tile.reveal()) return;
 
-    if (tile.hasMine && endIfMineIsFound) return this.gameLost();
+    if (tile.hasMine && endIfMineIsFound) {
+      tile.causeOfDefeat = true;
+      return this.gameLost();
+    }
     if (this.allNonMineTilesRevealed()) return this.gameWon();
 
     const cluster = this.getCluster(tile);
@@ -177,8 +180,9 @@ export default class Minesweeper {
     );
 
     adjacentHidden.map((t) => t.reveal()).some((res) => res);
-
-    if (!!adjacentHidden.find((tl) => tl.hasMine)) {
+    const adjacentHiddenMine = adjacentHidden.find((tl) => tl.hasMine);
+    if (!!adjacentHiddenMine) {
+      adjacentHiddenMine.causeOfDefeat = true;
       return this.gameLost();
     }
 
@@ -277,21 +281,26 @@ export default class Minesweeper {
   }
 
   private gameLost() {
-    this.#endDateTime = new Date();
-    this.#state = GameState.ENDED;
     this.#result = GameResult.LOST;
-    this.dispatch(EventName.stateChange, this.#state);
     this.dispatch(EventName.resultChange, this.#result);
+    this.gameEnd();
     return true;
   }
 
   private gameWon() {
+    this.#result = GameResult.WON;
+    this.dispatch(EventName.resultChange, this.#result);
+    this.gameEnd();
+    return true;
+  }
+
+  private gameEnd() {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
-    this.#result = GameResult.WON;
     this.dispatch(EventName.stateChange, this.#state);
-    this.dispatch(EventName.resultChange, this.#result);
-    return true;
+    this.#board.list
+      .filter((tl) => tl.hasMine && tl.state === TileState.HIDDEN)
+      .forEach((tl) => tl.reveal());
   }
 
   subscribe(evName: EventName, callback: EventCallback): () => void {

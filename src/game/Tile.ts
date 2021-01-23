@@ -19,6 +19,7 @@ export default class Tile {
   hasMine: boolean = false;
   #adjacent: Tile[] = [];
   #subscriptions: { [key in EventName]: EventCallback[] };
+  causeOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
     this.#key = gameKey + ":tile" + counter++;
