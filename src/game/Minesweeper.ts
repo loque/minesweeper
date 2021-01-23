@@ -47,15 +47,15 @@ export default class Minesweeper {
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
   #minesPlaced: boolean = false;
-  #subscriptions: { [key in EventName]: EventCallback[] };
+  #subscriptions: { [key in EventName]: { [id: string]: EventCallback } };
 
   constructor(config: BoardConfig) {
     this.key = "game" + getId();
     this.#config = config;
     this.#subscriptions = {
-      [EventName.stateChange]: [],
-      [EventName.resultChange]: [],
-      [EventName.flagsCountChange]: [],
+      [EventName.stateChange]: {},
+      [EventName.resultChange]: {},
+      [EventName.flagsCountChange]: {},
     };
 
     this.createEmptyBoard();
@@ -304,15 +304,15 @@ export default class Minesweeper {
   }
 
   subscribe(evName: EventName, callback: EventCallback): () => void {
-    const subscriptionIdx = this.#subscriptions[evName].length;
-    this.#subscriptions[evName].push(callback);
+    const subId = getId();
+    this.#subscriptions[evName][subId] = callback;
     return () => {
-      this.#subscriptions[evName].splice(subscriptionIdx, 1);
+      delete this.#subscriptions[evName][subId];
     };
   }
 
   private dispatch(evName: EventName, payload: any) {
-    const callbacks = this.#subscriptions[evName];
+    const callbacks = Object.values(this.#subscriptions[evName]);
     setTimeout(() => {
       callbacks.forEach((callback) => callback(payload));
     }, 0);

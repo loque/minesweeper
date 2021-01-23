@@ -9,7 +9,10 @@ enum EventName {
 }
 type EventCallback = (payload: any) => void;
 
-let counter = 0;
+let id = 0;
+function getId() {
+  return id++;
+}
 export default class Tile {
   #key: string;
   #state: TileState = TileState.HIDDEN;
@@ -18,16 +21,16 @@ export default class Tile {
   #colIdx: number = 0;
   hasMine: boolean = false;
   #adjacent: Tile[] = [];
-  #subscriptions: { [key in EventName]: EventCallback[] };
+  #subscriptions: { [key in EventName]: { [id: string]: EventCallback } };
   causeOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
-    this.#key = gameKey + ":tile" + counter++;
+    this.#key = gameKey + ":tile" + getId();
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
     this.#colIdx = colIdx;
     this.#subscriptions = {
-      [EventName.stateChange]: [],
+      [EventName.stateChange]: {},
     };
   }
 
@@ -91,16 +94,18 @@ export default class Tile {
   }
 
   subscribe(evName: EventName, callback: EventCallback): () => void {
-    const subscriptionIdx = this.#subscriptions[evName].length;
-    this.#subscriptions[evName].push(callback);
+    const subId = getId();
+    this.#subscriptions[evName][subId] = callback;
     return () => {
-      this.#subscriptions[evName].splice(subscriptionIdx, 1);
+      delete this.#subscriptions[evName][subId];
     };
   }
 
   private dispatch(evName: EventName, payload: any) {
-    const callbacks = this.#subscriptions[evName];
-    callbacks.forEach((callback) => callback(payload));
+    const callbacks = Object.values(this.#subscriptions[evName]);
+    setTimeout(() => {
+      callbacks.forEach((callback) => callback(payload));
+    }, 0);
   }
 
   log() {
