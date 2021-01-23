@@ -35,20 +35,38 @@ function ElapsedTime({ startDateTime, run }) {
 
 export default function StatusBar({ game }) {
   const config = useConfig();
+  const [gameState, setGameState] = useState(game.state());
+  const [flagsCount, setFlagsCount] = useState(game.totalMines);
+
+  useEffect(() => {
+    const clean = game.subscribe("stateChange", (state) => {
+      if (state === "READY") {
+        setFlagsCount(game.flagsCount);
+      }
+      setGameState(state);
+    });
+    return () => clean();
+  }, [game]);
+
+  useEffect(() => {
+    const clean = game.subscribe("flagsCountChange", setFlagsCount);
+    return () => clean();
+  }, [game]);
+
   return (
     <div className="status-bar">
       <span className="icon-button icon-text">
         <UserIcon /> {config.name}
       </span>
 
-      {game.state && (
+      {gameState && (
         <div className="icon-text-group">
           <span className="icon-text p-right">
-            <FlagIcon className="red" /> {game.flagsCount}
+            <FlagIcon className="red" /> {flagsCount}
           </span>
           <ElapsedTime
             startDateTime={game.startDateTime}
-            run={game.state("PLAYING")}
+            run={gameState === "PLAYING"}
           />
         </div>
       )}

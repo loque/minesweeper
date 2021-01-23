@@ -1,0 +1,68 @@
+.tile {
+  background-color: #373737;
+  border-radius: 4px;
+  position: relative;
+  transition: transform 100ms ease-in-out;
+
+  &.hidden:not(.disabled) {
+    cursor: pointer;
+    &.inspecting {
+      background-color: #4d4d4d;
+      transform: scale(0.94);
+    }
+  }
+
+  &.revealed {
+    background-color: #8c8b8b;
+
+    &.empty {
+      background-color: #808080;
+    }
+
+    &.hasMine {
+      color: black;
+      background-color: #d04a4a;
+    }
+
+    &:not(.hasMine) {
+      cursor: zoom-in;
+    }
+  }
+
+  &.flagged {
+    &:not(.disabled) {
+      cursor: pointer;
+      &.inspecting {
+        background-color: #4d4d4d;
+        transform: scale(0.94);
+      }
+    }
+  }
+
+  .board-tile-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.red {
+  color: #a40000;
+}
+.blue {
+  color: blue;
+}
+.dark-blue {
+  color: rgb(2, 2, 119);
+}
+.green {
+  color: green;
+}
+.yellow {
+  color: #d68c02;
+}

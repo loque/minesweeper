@@ -64,30 +64,33 @@ export default function Results() {
               </tr>
             </thead>
             <tbody>
-              {config.results.slice(0, 10).map((res, resIdx) => {
-                return (
-                  <tr key={resIdx}>
-                    <td>{new Date(res.endDateTime).toLocaleDateString()}</td>
-                    <td>
-                      <div>{msToMS(res.gameTime)}</div>
-                    </td>
-                    <td>
-                      <div>{res.level}</div>
-                    </td>
-                    <td>
-                      <div className="center result">
-                        {res.result === "WON" && (
-                          <HappyIcon className="yellow" />
-                        )}
-                        {res.result === "LOST" && <SadIcon className="red" />}
-                      </div>
-                    </td>
-                    <td>
-                      <div>{res.name}</div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {config.results
+                .sort(sortResults)
+                .slice(0, 10)
+                .map((res, resIdx) => {
+                  return (
+                    <tr key={resIdx}>
+                      <td>{new Date(res.endDateTime).toLocaleDateString()}</td>
+                      <td>
+                        <div>{msToMS(res.gameTime)}</div>
+                      </td>
+                      <td>
+                        <div>{res.level}</div>
+                      </td>
+                      <td>
+                        <div className="center result">
+                          {res.result === "WON" && (
+                            <HappyIcon className="yellow" />
+                          )}
+                          {res.result === "LOST" && <SadIcon className="red" />}
+                        </div>
+                      </td>
+                      <td>
+                        <div>{res.name}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         )}
@@ -106,6 +109,24 @@ export default function Results() {
       </div>
     </div>
   );
+}
+
+const resultValue = {
+  WON: 1,
+  LOST: -1,
+};
+
+function sortResults(a, b) {
+  if (resultValue[a.result] > resultValue[b.result]) return -1;
+  if (resultValue[a.result] < resultValue[b.result]) return 1;
+
+  if (a.level > b.level) return -1;
+  if (a.level < b.level) return 1;
+
+  if (a.gameTime < b.gameTime) return -1;
+  if (a.gameTime > b.gameTime) return 1;
+
+  return 0;
 }
 
 // from: https://stackoverflow.com/a/29816921/3622350

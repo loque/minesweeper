@@ -36,3 +36,21 @@ export function shuffle<T>(array: T[]): T[] {
 
   return array;
 }
+
+// Build classNames
+// TODO: correctly type this function
+export function bCN(...cNs: any[]) {
+  if (cNs.length === 1 && Array.isArray(cNs[0])) cNs = cNs[0];
+  const className = cNs
+    .map((cn) => {
+      if (Array.isArray(cn)) {
+        const value = cn.pop();
+        if (cn.some((cond) => cond === false)) return false;
+        return value;
+      }
+      return cn;
+    })
+    .filter((cn) => !!cn)
+    .join(" ");
+  return { className };
+}
