@@ -141,7 +141,7 @@ export default class Minesweeper {
       tile.causeOfDefeat = true;
       return this.gameLost();
     }
-    if (this.allNonMineTilesRevealed()) return this.gameWon();
+    if (this.allSafeTilesRevealed()) return this.gameWon();
 
     const cluster = this.getCluster(tile);
 
@@ -149,7 +149,7 @@ export default class Minesweeper {
       this.#board.list[adjAbsIdx].reveal();
     }
 
-    if (this.allNonMineTilesRevealed()) return this.gameWon();
+    if (this.allSafeTilesRevealed()) return this.gameWon();
   }
 
   private getCluster(tile: Tile, cluster: Cluster = new Set()): Cluster {
@@ -186,7 +186,7 @@ export default class Minesweeper {
       return this.gameLost();
     }
 
-    if (this.allNonMineTilesRevealed()) {
+    if (this.allSafeTilesRevealed()) {
       return this.gameWon();
     }
 
@@ -258,13 +258,13 @@ export default class Minesweeper {
     return (this.#minesPlaced = true);
   }
 
-  private allNonMineTilesRevealed(): boolean {
+  private allSafeTilesRevealed(): boolean {
     const totalTiles = this.#config.rows * this.#config.cols;
-    const nonMineTiles = totalTiles - this.#config.mines;
-    const nonMineTilesRevealed = this.#board.list.filter(
+    const safeTiles = totalTiles - this.#config.mines;
+    const safeTilesRevealed = this.#board.list.filter(
       (tl: Tile) => tl.state === TileState.REVEALED && tl.hasMine === false
     ).length;
-    return nonMineTilesRevealed === nonMineTiles;
+    return safeTilesRevealed === safeTiles;
   }
 
   private gameReady() {
