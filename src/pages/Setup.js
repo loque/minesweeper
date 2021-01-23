@@ -20,7 +20,10 @@ export default function Setup() {
   }, [autofocus]);
 
   function changeUsername(e) {
-    const username = e.target.value.slice(0, 3).toUpperCase();
+    let username = e.target.value.toUpperCase();
+    const re = /[A-Z0-9]+/g;
+    username = (username.match(re) || []).join("");
+    username = username.slice(0, 3);
     config.setUsername(username);
   }
 
@@ -51,7 +54,7 @@ export default function Setup() {
             <small
               className={config.username.length !== 3 ? "shown" : "hidden"}
             >
-              (*) username must be 3 characters long.
+              (*) username must be alphanumeric and 3 characters long.
             </small>
           </div>
         </div>
