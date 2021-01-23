@@ -34,6 +34,15 @@ export default function Game() {
   }, [reset, prevLocationKey, location.key]);
 
   useEffect(() => {
+    setGameState((currGameState) => {
+      if (currGameState !== game.state()) {
+        return game.state();
+      }
+      return currGameState;
+    });
+  }, [game]);
+
+  useEffect(() => {
     const listener = (ev) => setGameState(ev.detail);
     game.addEventListener("stateChange", listener);
     return () => game.removeEventListener("stateChange", listener);
