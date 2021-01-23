@@ -58,19 +58,13 @@ export default function StatusBar({ game }) {
       <span className="icon-button icon-text">
         <UserIcon /> {config.name}
       </span>
-
-      {gameState && (
-        <div className="icon-text-group">
-          <span className="icon-text p-right">
-            <FlagIcon className="red" /> {flagsCount}
-          </span>
-          <ElapsedTime
-            startDateTime={game.startDateTime}
-            run={gameState === "PLAYING"}
-          />
-        </div>
-      )}
-
+      <span className="icon-text">
+        <FlagIcon className="red" /> {flagsCount}
+      </span>
+      <ElapsedTime
+        startDateTime={game.startDateTime}
+        run={gameState === "PLAYING"}
+      />
       <span className="icon-button icon-text">
         <DifficultyIcon /> {config.level}
       </span>
