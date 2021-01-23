@@ -134,6 +134,6 @@ function buildResult(game, config) {
     level: config.level,
     gameTime: game.gameTime,
     result: game.result(),
-    name: config.name,
+    username: config.username,
   };
 }

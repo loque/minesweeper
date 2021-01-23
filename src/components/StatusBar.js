@@ -41,17 +41,17 @@ export default function StatusBar({ game }) {
 
   return (
     <div className="status-bar">
-      <span className="icon-button icon-text">
-        <UserIcon /> {config.name}
+      <span className="icon-button icon-text" title="Username">
+        <UserIcon /> {config.username}
       </span>
-      <span className="icon-text">
+      <span className="icon-text" title="Flag count">
         <FlagIcon className="red" /> {flagsCount}
       </span>
       <ElapsedTime
         startDateTime={game.startDateTime}
         run={gameState === "PLAYING"}
       />
-      <span className="icon-button icon-text">
+      <span className="icon-button icon-text" title="Level">
         <LevelIcon /> {config.level}
       </span>
     </div>

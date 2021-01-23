@@ -16,7 +16,7 @@ export default function useConfig() {
 
 const initialState = {
   level: localStorage.getItem("level") || 1,
-  name: localStorage.getItem("name") || "",
+  username: localStorage.getItem("username") || "",
   results: JSON.parse(localStorage.getItem("results")) || [],
 };
 
@@ -28,9 +28,9 @@ function useProviderConfig() {
     setConfig((state) => ({ ...state, level }));
   }
 
-  function setName(name) {
-    localStorage.setItem("name", name);
-    setConfig((state) => ({ ...state, name }));
+  function setUsername(username) {
+    localStorage.setItem("username", username);
+    setConfig((state) => ({ ...state, username }));
   }
 
   function addResult(newResult) {
@@ -50,5 +50,5 @@ function useProviderConfig() {
     });
   }
 
-  return { ...config, setLevel, setName, addResult, clearResults };
+  return { ...config, setLevel, setUsername, addResult, clearResults };
 }

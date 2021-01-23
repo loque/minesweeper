@@ -19,9 +19,9 @@ export default function Setup() {
     if (autofocus.current) autofocus.current.focus();
   }, [autofocus]);
 
-  function changeName(e) {
-    let name = e.target.value.slice(0, 3).toUpperCase();
-    config.setName(name);
+  function changeUsername(e) {
+    const username = e.target.value.slice(0, 3).toUpperCase();
+    config.setUsername(username);
   }
 
   function selectLevel(level) {
@@ -39,17 +39,19 @@ export default function Setup() {
         <div className="section">
           <h3 className="section-title">
             <UserIcon />
-            Set your name
+            Set your username
           </h3>
-          <div className="section-body name">
+          <div className="section-body username">
             <input
               type="text"
               ref={autofocus}
-              value={config.name}
-              onChange={changeName}
+              value={config.username}
+              onChange={changeUsername}
             />
-            <small className={config.name.length !== 3 ? "shown" : "hidden"}>
-              (*) name must be 3 characters long.
+            <small
+              className={config.username.length !== 3 ? "shown" : "hidden"}
+            >
+              (*) username must be 3 characters long.
             </small>
           </div>
         </div>
@@ -76,7 +78,7 @@ export default function Setup() {
           <button
             className="button text-icon play-button"
             onClick={() => history.push("/game")}
-            disabled={config.name.length !== 3}
+            disabled={config.username.length !== 3}
           >
             Start game
             <PlayIcon className="yellow" />

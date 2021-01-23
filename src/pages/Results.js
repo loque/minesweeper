@@ -86,7 +86,7 @@ export default function Results() {
                         </div>
                       </td>
                       <td>
-                        <div>{res.name}</div>
+                        <div>{res.username}</div>
                       </td>
                     </tr>
                   );
