@@ -29,7 +29,7 @@ export default function Setup() {
   }
 
   function levelClassName(level) {
-    return config.level === level ? "selected" : "";
+    return config.level === String(level) ? "selected" : "";
   }
 
   return (
