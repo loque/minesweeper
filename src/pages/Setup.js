@@ -5,7 +5,7 @@ import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
 import {
   RiUser3Fill as UserIcon,
-  RiFlashlightFill as DifficultyIcon,
+  RiFlashlightFill as LevelIcon,
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
 import { levels } from "../lib/useGame";
@@ -55,9 +55,9 @@ export default function Setup() {
         </div>
         <div className="section">
           <h3 className="section-title">
-            <DifficultyIcon /> Select difficulty level
+            <LevelIcon /> Select level
           </h3>
-          <div className="section-body difficulty">
+          <div className="section-body level">
             {levels.map((_, levelIdx) => {
               const level = levelIdx + 1;
               return (

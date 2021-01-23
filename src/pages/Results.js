@@ -6,7 +6,7 @@ import {
   RiRefreshLine as ReloadIcon,
   RiUser3Fill as UserIcon,
   RiMedalFill as MedalIcon,
-  RiFlashlightFill as DifficultyIcon,
+  RiFlashlightFill as LevelIcon,
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
   RiTimerFill as TimeIcon,
@@ -53,7 +53,7 @@ export default function Results() {
                   </span>
                 </td>
                 <td title="Level" className="regular-width">
-                  <DifficultyIcon />
+                  <LevelIcon />
                 </td>
                 <td title="Result" className="regular-width">
                   <MedalIcon />

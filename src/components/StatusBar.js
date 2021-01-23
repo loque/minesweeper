@@ -4,7 +4,7 @@ import {
   RiUser3Fill as UserIcon,
   RiFlag2Fill as FlagIcon,
   RiTimerFill as TimeIcon,
-  RiFlashlightFill as DifficultyIcon,
+  RiFlashlightFill as LevelIcon,
 } from "react-icons/ri";
 import { useGameState, useFlagsCount } from "../lib/useGame";
 import useConfig from "../lib/useConfig";
@@ -52,7 +52,7 @@ export default function StatusBar({ game }) {
         run={gameState === "PLAYING"}
       />
       <span className="icon-button icon-text">
-        <DifficultyIcon /> {config.level}
+        <LevelIcon /> {config.level}
       </span>
     </div>
   );
