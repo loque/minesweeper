@@ -120,7 +120,7 @@ export default function Game() {
 
   return (
     <div className="view">
-      <div className="container board-container">
+      <div className="container">
         <Header />
         <StatusBar game={game} />
         <Board ref={boardRef} game={game} gameState={gameState} />
