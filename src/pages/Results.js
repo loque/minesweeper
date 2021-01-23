@@ -111,11 +111,21 @@ export default function Results() {
   );
 }
 
+const resultValue = {
+  WON: 1,
+  LOST: -1,
+};
+
 function sortResults(a, b) {
+  if (resultValue[a.result] > resultValue[b.result]) return -1;
+  if (resultValue[a.result] < resultValue[b.result]) return 1;
+
   if (a.level > b.level) return -1;
   if (a.level < b.level) return 1;
+
   if (a.gameTime < b.gameTime) return -1;
   if (a.gameTime > b.gameTime) return 1;
+
   return 0;
 }
 
