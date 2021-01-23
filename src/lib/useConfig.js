@@ -22,7 +22,7 @@ const initialState = {
 
 function useProviderConfig() {
   const [config, setConfig] = useState(initialState);
-  console.log("config", config);
+
   function setLevel(level) {
     localStorage.setItem("level", level);
     setConfig((state) => ({ ...state, level }));
