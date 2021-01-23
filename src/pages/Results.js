@@ -47,7 +47,7 @@ export default function Results() {
                     <CalendarIcon />
                   </span>
                 </td>
-                <td title="Time" className="regular-width">
+                <td title="Game time" className="regular-width">
                   <span>
                     <TimeIcon />
                   </span>

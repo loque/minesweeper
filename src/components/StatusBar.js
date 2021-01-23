@@ -28,7 +28,7 @@ function ElapsedTime({ startDateTime, run }) {
     };
   }, [startDateTime, run]);
   return (
-    <span className="icon-text">
+    <span className="icon-text" title="Elapsed time">
       <TimeIcon className="yellow" /> {elapsedTime}
     </span>
   );
