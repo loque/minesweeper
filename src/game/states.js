@@ -1,27 +1,7 @@
 import { atom, atomFamily, selector } from "recoil";
 
-export const tileSizeAtom = atom({
-  key: "tileSizeAtom",
-  default: 0,
-});
-
 export const tileIsScanned = atomFamily({
   key: "tileIsScanned",
-  default: false,
-});
-
-export const tileState = atomFamily({
-  key: "tileState",
-  default: "HIDDEN",
-});
-
-export const tileValue = atomFamily({
-  key: "tileValue",
-  default: 0,
-});
-
-export const tileHasMine = atomFamily({
-  key: "tileHasMine",
   default: false,
 });
 
@@ -39,7 +19,7 @@ export const scanState = atom({
  * Array of absIdx including target tile and adjacent tiles, in case of scanning
  * multiple tiles.
  */
-export const scanTargets = atom({
+const scanTargets = atom({
   key: "scanTargets",
   default: [],
 });
