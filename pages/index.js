@@ -1,6 +1,7 @@
-import "./Setup.scss";
+import Head from "next/head";
+import Link from "next/link";
+import "../styles/Setup.module.scss";
 import { useEffect, useRef } from "react";
-import { useHistory } from "react-router-dom";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
 import {
@@ -10,8 +11,7 @@ import {
 } from "react-icons/ri";
 import { levels } from "../lib/useGame";
 
-export default function Setup() {
-  const history = useHistory();
+export default function Home() {
   const config = useConfig();
   const autofocus = useRef();
 
@@ -40,11 +40,11 @@ export default function Setup() {
       <div className="container">
         <Header setupBtn={false} />
         <div className="section">
-          <h3 className="section-title">
+          <h3 className="sectionTitle">
             <UserIcon />
             Set your username
           </h3>
-          <div className="section-body username">
+          <div className="sectionBody username">
             <input
               type="text"
               ref={autofocus}
@@ -59,10 +59,10 @@ export default function Setup() {
           </div>
         </div>
         <div className="section">
-          <h3 className="section-title">
+          <h3 className="sectionTitle">
             <LevelIcon /> Select level
           </h3>
-          <div className="section-body level">
+          <div className="sectionBody level">
             {levels.map((_, levelIdx) => {
               const level = levelIdx + 1;
               return (
@@ -77,15 +77,21 @@ export default function Setup() {
             })}
           </div>
         </div>
-        <div className="play-button-wrapper">
-          <button
-            className="button text-icon play-button"
-            onClick={() => history.push("/game")}
-            disabled={config.username.length !== 3}
+        <div className="playBtnWrapper">
+          <Link
+            className="button text-icon playBtn"
+            href={"/game"}
+            onClick={(ev) => {
+              if (config.username.length < 3) {
+                ev.preventDefault();
+              }
+            }}
           >
-            Play
-            <PlayIcon className="yellow" />
-          </button>
+            <span>
+              Play
+              <PlayIcon className="yellow" />
+            </span>
+          </Link>
         </div>
       </div>
     </div>

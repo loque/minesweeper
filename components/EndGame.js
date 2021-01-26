@@ -1,15 +1,15 @@
 import { useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   RiRefreshLine as ReloadIcon,
   RiMedalFill as MedalIcon,
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
-import "./EndGame.scss";
+import "./EndGame.module.scss";
 import { useGameState, useGameResult } from "../lib/useGame";
 
-export default function EndGame({ game }) {
+export default function EndGame({ game, reset }) {
   const autofocus = useRef();
   const [gameState] = useGameState(game);
   const gameResult = useGameResult(game);
@@ -30,13 +30,15 @@ export default function EndGame({ game }) {
           <SadIcon className="red" /> You Lost!
         </div>
       )}
-      <Link ref={autofocus} className="button icon-text" to="/game">
+      <button ref={autofocus} className="button icon-text" onClick={reset}>
         <ReloadIcon />
         Play
-      </Link>
-      <Link to="/results" className="button icon-text">
-        <MedalIcon />
-        Results
+      </button>
+      <Link href="/results" className="button icon-text">
+        <span>
+          <MedalIcon />
+          Results
+        </span>
       </Link>
     </div>
   );

@@ -1,5 +1,5 @@
-import "./Header.scss";
-import { Link, useHistory } from "react-router-dom";
+import "./Header.module.scss";
+import Link from "next/link";
 import {
   RiSettings4Fill as SetupIcon,
   RiArrowGoBackFill as BackIcon,
@@ -12,19 +12,21 @@ export default function Header({
   backBtn = false,
   playAgainBtn = false,
 }) {
-  const history = useHistory();
+  console.log("title", title);
   return (
-    <header>
+    <header className="header">
       {title && title}
       {!title && <h1>minesweeper</h1>}
       {playAgainBtn && (
-        <Link className="button icon-text" to="/game">
-          <ReloadIcon />
-          Play again
+        <Link className="button icon-text" href="/game">
+          <span>
+            <ReloadIcon />
+            Play again
+          </span>
         </Link>
       )}
       {setupBtn && (
-        <Link to="/setup" className="button transparent" title="Setup">
+        <Link href="/" className="button transparent" title="Setup">
           <SetupIcon />
         </Link>
       )}
@@ -32,7 +34,7 @@ export default function Header({
         <button
           className="button transparent"
           title="Go back"
-          onClick={() => history.goBack()}
+          onClick={() => window.history.back()}
         >
           <BackIcon />
         </button>

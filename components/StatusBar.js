@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./StatusBar.scss";
+import "./StatusBar.module.scss";
 import {
   RiUser3Fill as UserIcon,
   RiFlag2Fill as FlagIcon,

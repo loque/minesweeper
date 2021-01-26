@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { useSetRecoilState } from "recoil";
-import "./Board.scss";
+import styles from "./Board.module.scss";
 import { scanTargetsSelector } from "../game/states";
 import { useGameState } from "../lib/useGame";
 import Tile from "./Tile";
@@ -32,11 +32,11 @@ export default forwardRef(function Board({ game }, ref) {
   }
 
   return (
-    <div ref={ref} className="board" onMouseLeave={mouseLeaveHandler}>
+    <div ref={ref} className={styles.board} onMouseLeave={mouseLeaveHandler}>
       {game.board.map((row, rowIdx) => (
         <div
           key={rowIdx}
-          className="board-row"
+          className={styles.boardRow}
           onContextMenu={(ev) => ev.preventDefault()}
         >
           {row.map((tile) => (

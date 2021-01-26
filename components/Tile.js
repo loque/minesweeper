@@ -5,10 +5,9 @@ import {
   RiFlag2Fill as FlagIcon,
   RiFocus3Fill as MineIcon,
 } from "react-icons/ri";
-import "./Tile.scss";
-import tileImg from "./tile.png";
+import "./Tile.module.scss";
 import { bCN } from "../lib/utils";
-import { tileMargin } from "../pages/Game";
+import { tileMargin } from "../pages/game";
 import { useTileState } from "../lib/useGame";
 
 export default function Tile({
@@ -78,11 +77,11 @@ export default function Tile({
       onContextMenu={contextMenuHandler}
     >
       <img
-        src={tileImg}
+        src={"/tile.png"}
         alt="Tile"
         style={{ width: "100%", display: "block" }}
       />
-      <div className="board-tile-content">
+      <div className="content">
         {tileState === "REVEALED" &&
           !tile.hasMine &&
           !!tile.value &&

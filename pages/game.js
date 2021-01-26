@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import "./Game.scss";
+import "../styles/Game.module.scss";
 import { useSetRecoilState } from "recoil";
 import { scanState, scanTargetsSelector } from "../game/states";
 import useGame, { useGameState } from "../lib/useGame";
@@ -19,17 +18,6 @@ export default function Game() {
   const [game, reset] = useGame(config.level);
   const [gameState, setGameState] = useGameState(game);
   const prevGameState = useRef();
-
-  // Call `reset()` when we re-enter the location. When the user clicks on
-  // `Play` on `EndGame`
-  const location = useLocation();
-  const prevLocationKey = useRef(location.key);
-  useEffect(() => {
-    if (prevLocationKey.current !== location.key) {
-      prevLocationKey.current = location.key;
-      reset();
-    }
-  }, [reset, prevLocationKey, location.key]);
 
   // If game changes (on reset) the subscription from `useGameState` is not
   // called so we need to manually check if the state has changed.
@@ -122,7 +110,7 @@ export default function Game() {
         <Header />
         <StatusBar key={"statusbar:" + game.key} game={game} />
         <Board ref={boardRef} game={game} />
-        {gameState === "ENDED" && <EndGame game={game} />}
+        {gameState === "ENDED" && <EndGame game={game} reset={reset} />}
       </div>
     </div>
   );

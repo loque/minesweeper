@@ -4,7 +4,7 @@
   justify-content: space-between;
   padding-bottom: 3em;
 
-  .section-title {
+  .sectionTitle {
     display: flex;
     align-items: center;
     margin-bottom: 1em;
@@ -13,7 +13,7 @@
     }
   }
 
-  .section-body {
+  .sectionBody {
     display: flex;
     justify-content: center;
 
@@ -52,12 +52,12 @@
   }
 }
 
-.play-button-wrapper {
+.playBtnWrapper {
   display: flex;
   justify-content: center;
   padding-top: 2em;
 
-  .play-button {
+  .playBtn {
     background-color: #d68c02;
     color: #342f30;
     display: inline-flex;

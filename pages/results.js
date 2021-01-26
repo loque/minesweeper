@@ -1,7 +1,7 @@
-import "./Results.scss";
+import "../styles/Results.module.scss";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   RiRefreshLine as ReloadIcon,
   RiUser3Fill as UserIcon,
@@ -32,9 +32,11 @@ export default function Results() {
         />
 
         <div className="play-again-wrapper">
-          <Link className="button icon-text" to="/game">
-            <ReloadIcon />
-            Play again
+          <Link className="button icon-text" href="/game">
+            <span>
+              <ReloadIcon />
+              Play again
+            </span>
           </Link>
         </div>
 
