@@ -2,7 +2,7 @@ version: "3.7"
 services:
   ms-client:
     image: node:latest
-    container_name: ${CONTAINERS_PREFIX}-ms-client
+    container_name: ms-client
     working_dir: /usr/share/ms-client
     expose:
       - "3000"
