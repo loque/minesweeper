@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  ms-client:
+    image: node:latest
+    container_name: ${CONTAINERS_PREFIX}-ms-client
+    working_dir: /usr/share/ms-client
+    expose:
+      - "3000"
+    environment:
+      VIRTUAL_PORT: 3000
+    volumes:
+      - ./apps/minesweeper:/usr/share/ms-client
+    command: /bin/bash -c "yarn && yarn start"
+
+  nginx-proxy:
+    depends_on:
+      - ms-client
