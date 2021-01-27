@@ -1,6 +1,7 @@
 version: "3.7"
 services:
   ms-client:
+    user: "1000:1000"
     environment:
       VIRTUAL_HOST: ms.ls.local
     command: /bin/bash -c "yarn && yarn dev"
