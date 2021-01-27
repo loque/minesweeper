@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import { useSetRecoilState } from "recoil";
-import styles from "./Board.module.scss";
 import { scanTargetsSelector } from "../game/states";
 import { useGameState } from "../lib/useGame";
 import Tile from "./Tile";
+import styled from "styled-components";
 
 export default forwardRef(function Board({ game }, ref) {
   const [gameState] = useGameState(game);
@@ -32,13 +32,9 @@ export default forwardRef(function Board({ game }, ref) {
   }
 
   return (
-    <div ref={ref} className={styles.board} onMouseLeave={mouseLeaveHandler}>
+    <BoardWrapper ref={ref} onMouseLeave={mouseLeaveHandler}>
       {game.board.map((row, rowIdx) => (
-        <div
-          key={rowIdx}
-          className={styles.boardRow}
-          onContextMenu={(ev) => ev.preventDefault()}
-        >
+        <BoardRow key={rowIdx} onContextMenu={(ev) => ev.preventDefault()}>
           {row.map((tile) => (
             <Tile
               key={tile.key}
@@ -51,8 +47,19 @@ export default forwardRef(function Board({ game }, ref) {
               tilesInRow={tilesInRow}
             />
           ))}
-        </div>
+        </BoardRow>
       ))}
-    </div>
+    </BoardWrapper>
   );
 });
+
+const BoardWrapper = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`;
+const BoardRow = styled.div`
+  display: flex;
+  flex-direction: row;
+`;

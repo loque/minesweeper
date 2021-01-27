@@ -1,10 +1,10 @@
-import "./Header.module.scss";
-import Link from "next/link";
 import {
   RiSettings4Fill as SetupIcon,
   RiArrowGoBackFill as BackIcon,
   RiRefreshLine as ReloadIcon,
 } from "react-icons/ri";
+import { Header as StyledHeader } from "../ui/layout";
+import { Link } from "../ui/button";
 
 export default function Header({
   title = null,
@@ -12,13 +12,12 @@ export default function Header({
   backBtn = false,
   playAgainBtn = false,
 }) {
-  console.log("title", title);
   return (
-    <header className="header">
+    <StyledHeader>
       {title && title}
       {!title && <h1>minesweeper</h1>}
       {playAgainBtn && (
-        <Link className="button icon-text" href="/game">
+        <Link className="icon-text" href="/game">
           <span>
             <ReloadIcon />
             Play again
@@ -26,19 +25,19 @@ export default function Header({
         </Link>
       )}
       {setupBtn && (
-        <Link href="/" className="button transparent" title="Setup">
+        <Link href="/" className="transparent" title="Setup">
           <SetupIcon />
         </Link>
       )}
       {backBtn && (
         <button
-          className="button transparent"
+          className="transparent"
           title="Go back"
           onClick={() => window.history.back()}
         >
           <BackIcon />
         </button>
       )}
-    </header>
+    </StyledHeader>
   );
 }

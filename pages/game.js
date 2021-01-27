@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import "../styles/Game.module.scss";
 import { useSetRecoilState } from "recoil";
 import { scanState, scanTargetsSelector } from "../game/states";
 import useGame, { useGameState } from "../lib/useGame";
@@ -9,6 +8,8 @@ import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
 import EndGame from "../components/EndGame";
 import Board from "../components/Board";
+
+import { View, Container } from "../ui/layout";
 
 export const tileMargin = 1.5;
 
@@ -105,14 +106,14 @@ export default function Game() {
   }, [gameState, game, boardRef, updateScanState, setScannedTargets]);
 
   return (
-    <div className="view">
-      <div className="container">
+    <View>
+      <Container>
         <Header />
         <StatusBar key={"statusbar:" + game.key} game={game} />
         <Board ref={boardRef} game={game} />
         {gameState === "ENDED" && <EndGame game={game} reset={reset} />}
-      </div>
-    </div>
+      </Container>
+    </View>
   );
 }
 

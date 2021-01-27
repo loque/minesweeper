@@ -1,13 +1,13 @@
 import { useRef, useEffect } from "react";
-import Link from "next/link";
 import {
   RiRefreshLine as ReloadIcon,
   RiMedalFill as MedalIcon,
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
-import "./EndGame.module.scss";
 import { useGameState, useGameResult } from "../lib/useGame";
+import { Button, Link } from "../ui/button";
+import styled from "styled-components";
 
 export default function EndGame({ game, reset }) {
   const autofocus = useRef();
@@ -19,27 +19,57 @@ export default function EndGame({ game, reset }) {
   }, [autofocus]);
 
   return (
-    <div className="endgame">
+    <EndGameWrapper>
       {gameState === "ENDED" && gameResult === "WON" && (
-        <div className="endgame-result icon-text">
+        <EndGameResult className="icon-text">
           <HappyIcon className="yellow" /> You won!
-        </div>
+        </EndGameResult>
       )}
       {gameState === "ENDED" && gameResult === "LOST" && (
-        <div className="endgame-result icon-text">
+        <EndGameResult className="icon-text">
           <SadIcon className="red" /> You Lost!
-        </div>
+        </EndGameResult>
       )}
-      <button ref={autofocus} className="button icon-text" onClick={reset}>
+      <Button ref={autofocus} className="icon-text" onClick={reset}>
         <ReloadIcon />
         Play
-      </button>
-      <Link href="/results" className="button icon-text">
-        <span>
-          <MedalIcon />
-          Results
-        </span>
+      </Button>
+      <Link href="/results" className="icon-text">
+        <MedalIcon />
+        Results
       </Link>
-    </div>
+    </EndGameWrapper>
   );
 }
+
+const EndGameWrapper = styled.div`
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  margin-top: 6px;
+  padding: 2rem 0;
+  width: 100%;
+  background-color: #292425;
+  gap: 1rem;
+  &:after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-image: linear-gradient(transparent, #29242563);
+  }
+`;
+
+const EndGameResult = styled.div`
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  flex: 1;
+  svg {
+    font-size: 2em;
+  }
+`;

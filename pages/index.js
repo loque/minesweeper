@@ -1,6 +1,5 @@
 import Head from "next/head";
-import Link from "next/link";
-import "../styles/Setup.module.scss";
+// import "../styles/Setup.module.scss";
 import { useEffect, useRef } from "react";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
@@ -10,6 +9,15 @@ import {
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
 import { levels } from "../lib/useGame";
+import {
+  View,
+  Container,
+  Section,
+  SectionTitle,
+  SectionBody,
+} from "../ui/layout";
+import { Button, Link } from "../ui/button";
+import { Input } from "../ui/form";
 
 export default function Home() {
   const config = useConfig();
@@ -31,21 +39,17 @@ export default function Home() {
     return () => config.setLevel(level);
   }
 
-  function levelClassName(level) {
-    return String(config.level) === String(level) ? "selected" : "";
-  }
-
   return (
-    <div className="view">
-      <div className="container">
+    <View>
+      <Container>
         <Header setupBtn={false} />
-        <div className="section">
-          <h3 className="sectionTitle">
+        <Section>
+          <SectionTitle>
             <UserIcon />
             Set your username
-          </h3>
-          <div className="sectionBody username">
-            <input
+          </SectionTitle>
+          <SectionBody username>
+            <Input
               type="text"
               ref={autofocus}
               value={config.username}
@@ -56,44 +60,42 @@ export default function Home() {
             >
               (*) username must be alphanumeric and 3 characters long.
             </small>
-          </div>
-        </div>
-        <div className="section">
-          <h3 className="sectionTitle">
+          </SectionBody>
+        </Section>
+        <Section>
+          <SectionTitle>
             <LevelIcon /> Select level
-          </h3>
-          <div className="sectionBody level">
+          </SectionTitle>
+          <SectionBody level>
             {levels.map((_, levelIdx) => {
               const level = levelIdx + 1;
               return (
-                <button
+                <Button
                   key={levelIdx}
-                  className={levelClassName(level)}
+                  selected={String(config.level) === String(level)}
                   onClick={selectLevel(level)}
                 >
                   {level}
-                </button>
+                </Button>
               );
             })}
-          </div>
-        </div>
-        <div className="playBtnWrapper">
-          <Link
-            className="button text-icon playBtn"
-            href={"/game"}
-            onClick={(ev) => {
-              if (config.username.length < 3) {
-                ev.preventDefault();
-              }
-            }}
-          >
-            <span>
-              Play
-              <PlayIcon className="yellow" />
-            </span>
-          </Link>
-        </div>
-      </div>
-    </div>
+          </SectionBody>
+        </Section>
+        <Link
+          textIcon
+          cta
+          // className="playBtn"
+          href={"/game"}
+          onClick={(ev) => {
+            if (config.username.length < 3) {
+              ev.preventDefault();
+            }
+          }}
+        >
+          Play
+          <PlayIcon className="yellow" />
+        </Link>
+      </Container>
+    </View>
   );
 }

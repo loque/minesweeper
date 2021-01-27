@@ -1,7 +1,5 @@
-import "../styles/Results.module.scss";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
-import Link from "next/link";
 import {
   RiRefreshLine as ReloadIcon,
   RiUser3Fill as UserIcon,
@@ -14,12 +12,15 @@ import {
   RiCloseLine as ClearIcon,
 } from "react-icons/ri";
 import { msToMS } from "../lib/utils";
+import { View, Container } from "../ui/layout";
+import { Button, Link } from "../ui/button";
+import { Table, THead, TBody, Tr, Td } from "../ui/table";
 
 export default function Results() {
   const config = useConfig();
   return (
-    <div className="view">
-      <div className="container">
+    <View>
+      <Container>
         <Header
           title={
             <h1 className="results-title">
@@ -32,84 +33,80 @@ export default function Results() {
         />
 
         <div className="play-again-wrapper">
-          <Link className="button icon-text" href="/game">
-            <span>
-              <ReloadIcon />
-              Play again
-            </span>
+          <Link className="icon-text" href="/game">
+            <ReloadIcon />
+            Play again
           </Link>
         </div>
 
         {!!config.results.length && (
-          <table className="results-table">
-            <thead>
-              <tr>
-                <td title="Date">
+          <Table>
+            <THead>
+              <Tr>
+                <Td title="Date">
                   <span>
                     <CalendarIcon />
                   </span>
-                </td>
-                <td title="Game time" className="regular-width">
+                </Td>
+                <Td title="Game time">
                   <span>
                     <TimeIcon />
                   </span>
-                </td>
-                <td title="Level" className="regular-width">
+                </Td>
+                <Td title="Level">
                   <LevelIcon />
-                </td>
-                <td title="Result" className="regular-width">
+                </Td>
+                <Td title="Result">
                   <MedalIcon />
-                </td>
-                <td title="Username" className="regular-width">
+                </Td>
+                <Td title="Username">
                   <UserIcon />
-                </td>
-              </tr>
-            </thead>
-            <tbody>
+                </Td>
+              </Tr>
+            </THead>
+            <TBody>
               {config.results
                 .sort(sortResults)
                 .slice(0, 10)
                 .map((res, resIdx) => {
                   return (
-                    <tr key={resIdx}>
-                      <td>{new Date(res.endDateTime).toLocaleDateString()}</td>
-                      <td>
+                    <Tr key={resIdx}>
+                      <Td>{new Date(res.endDateTime).toLocaleDateString()}</Td>
+                      <Td>
                         <div>{msToMS(res.gameTime)}</div>
-                      </td>
-                      <td>
+                      </Td>
+                      <Td>
                         <div>{res.level}</div>
-                      </td>
-                      <td>
-                        <div className="center result">
-                          {res.result === "WON" && (
-                            <HappyIcon className="yellow" />
-                          )}
-                          {res.result === "LOST" && <SadIcon className="red" />}
-                        </div>
-                      </td>
-                      <td>
+                      </Td>
+                      <Td center style={{ fontSize: "1.1rem" }}>
+                        {res.result === "WON" && (
+                          <HappyIcon className="yellow" />
+                        )}
+                        {res.result === "LOST" && <SadIcon className="red" />}
+                      </Td>
+                      <Td>
                         <div>{res.username}</div>
-                      </td>
-                    </tr>
+                      </Td>
+                    </Tr>
                   );
                 })}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         )}
 
         {!!config.results.length && (
           <div className="clear-btn-wrapper">
-            <button
+            <Button
               className="icon-text clear-btn"
               onClick={() => config.clearResults()}
             >
               <ClearIcon />
               Clear results
-            </button>
+            </Button>
           </div>
         )}
-      </div>
-    </div>
+      </Container>
+    </View>
   );
 }
 
