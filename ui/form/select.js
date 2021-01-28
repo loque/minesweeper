@@ -1,15 +1,12 @@
-import { forwardRef } from "react";
-import styled, { css, keyframes } from "styled-components";
+import styled, { keyframes } from "styled-components";
 import {
   ListboxInput,
   ListboxButton,
   ListboxPopover,
   ListboxList,
   ListboxOption,
-  useListboxContext,
 } from "@reach/listbox";
 import { getCollisions } from "@reach/popover";
-// import "@reach/listbox/styles.css";
 import { RiArrowDownSLine as ArrowDownIcon } from "react-icons/ri";
 import common from "./common";
 import { baseStyle } from "./button";
@@ -72,28 +69,20 @@ export function Select({ value, onChange, children, label }) {
   );
 }
 
-const StyledOption = styled(ListboxOption)`
+export const Option = styled(ListboxOption)`
   padding: 0.8em 1.2em;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.5);
   background-color: #322d2e;
-  ${(props) => props.selected && selectedStyle}
-  ${(props) => !props.selected && unselectedStyle}
-`;
-
-const unselectedStyle = css`
+  &[data-current] {
+    color: rgba(255, 255, 255, 0.4);
+    background-color: #282425;
+  }
+  &[aria-selected="true"],
   &:hover {
     background-color: #3c3637;
   }
 `;
-const selectedStyle = css`
-  filter: brightness(0.9);
-`;
-
-export const Option = forwardRef(function Option(props, ref) {
-  const { value } = useListboxContext();
-  return <StyledOption ref={ref} {...props} selected={props.value === value} />;
-});
 
 const positionDefault = (targetRect, popoverRect) => {
   if (!targetRect || !popoverRect) {
