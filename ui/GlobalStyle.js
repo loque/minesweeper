@@ -2,6 +2,8 @@ import { createGlobalStyle } from "styled-components";
 import normalize from "./normalize";
 
 export const GlobalStyle = createGlobalStyle`
+${normalize}
+
 * {
   box-sizing: border-box;
 }
@@ -18,7 +20,7 @@ body {
   padding: 0;
 }
 
-.red {
+/* .red {
   color: #a40000;
 }
 .blue {
@@ -32,7 +34,9 @@ body {
 }
 .yellow {
   color: #d68c02;
-}
+} */
 
-${normalize}
+h1 {
+  margin: 0;
+}
 `;
