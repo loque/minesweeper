@@ -90,30 +90,29 @@ const positionDefault = (targetRect, popoverRect) => {
   }
 
   const { directionRight } = getCollisions(targetRect, popoverRect);
+  const { left: targetLeft, right: targetRight } = targetRect;
+  const { width: popoverWidth } = popoverRect;
+  const { pageXOffset } = window;
   return {
     left: directionRight
-      ? `${targetRect.right - popoverRect.width + window.pageXOffset}px`
-      : `${targetRect.left + window.pageXOffset}px`,
+      ? `${targetRight - popoverWidth + pageXOffset}px`
+      : `${targetLeft + pageXOffset}px`,
     ...getTopPosition(targetRect, popoverRect),
     width: targetRect.width,
   };
 };
 
+// TODO: if there is a workaround suggested in
+// https://github.com/reach/reach-ui/issues/735 **then** we could design a popover
+// that overlaps the button.
 function getTopPosition(targetRect, popoverRect) {
   const { directionUp } = getCollisions(targetRect, popoverRect);
+  const { top: targetTop, height: targetHeight } = targetRect;
+  const { height: popoverHeight } = popoverRect;
+  const { pageYOffset } = window;
   return {
     top: directionUp
-      ? `calc(${
-          targetRect.top -
-          popoverRect.height +
-          window.pageYOffset +
-          targetRect.height
-        }px + 0.5em)`
-      : `calc(${
-          targetRect.top +
-          targetRect.height +
-          window.pageYOffset -
-          targetRect.height
-        }px - 0.5em)`,
+      ? `${targetTop - popoverHeight + pageYOffset}px`
+      : `${targetTop + targetHeight + pageYOffset}px`,
   };
 }
