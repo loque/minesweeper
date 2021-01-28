@@ -1,7 +1,9 @@
 import { css } from "styled-components";
 
 export default css`
-  padding: 0.8em 1.2em;
+  font-size: 0.9rem;
+  padding: 0 1.4em;
+  height: 3.6em;
   border-radius: 5px;
   border: 1px solid #8e8e8e1c;
   color: rgba(255, 255, 255, 0.5);
@@ -19,7 +21,7 @@ export default css`
 
 const largeStyle = css`
   font-size: 1.2rem;
-  padding: 0.8em 1.7em;
+  height: 3.2em;
 `;
 
 const nonDisabledStyle = css`
