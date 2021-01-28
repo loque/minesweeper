@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import {
   ListboxInput,
   ListboxButton,
@@ -30,10 +30,23 @@ const StyledButton = styled(ListboxButton)`
   }
 `;
 
+const slide = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const StyledPopover = styled(ListboxPopover)`
   background-color: #322d2e;
   border-radius: 5px;
   border: 1px solid #d68c024a;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.29);
+  animation: ${slide} 200ms ease-in-out;
 `;
 
 const StyledList = styled(ListboxList)`
