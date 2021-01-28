@@ -42,8 +42,7 @@ function wrapTextChildInSpan(children) {
 
 export const baseStyles = css`
   background-color: ${(props) =>
-    props.transparent ? "transparent" : "#342f30"};
-  color: rgba(255, 255, 255, 0.4);
+    props.transparent ? "transparent" : "rgb(52,47,48)"};
   cursor: pointer;
   text-decoration: none;
   display: flex;
@@ -62,31 +61,35 @@ export const baseStyles = css`
   /* ${(props) => props.selected && "color: #d68c02 !important;"} */
 `;
 
+const b = 1.5;
 const baseNonDisabledStyle = css`
-  background-image: linear-gradient(#a8a6a60a 30%, transparent);
+  background-image: linear-gradient(
+    rgba(${52 * b}, ${47 * b}, ${48 * b}, 0.1) 10%,
+    transparent 50%
+  );
   &:active {
     transform: translateY(1px);
-    background-image: linear-gradient(#00000012, transparent);
+    filter: brightness(0.9);
   }
 `;
 
 const ctaStyle = css`
   background-color: #d68c02;
-  color: #342f30;
+  color: rgba(0, 0, 0, 0.75);
   font-weight: 600;
   text-transform: uppercase;
   svg {
-    color: #342f30;
+    color: rgba(0, 0, 0, 0.75);
   }
   &:focus {
-    box-shadow: 0 1px 20px 0px #d68c02a6 !important;
+    box-shadow: 0 1px 20px 0px rgba(214, 140, 2, 0.65) !important;
   }
   ${(props) => !props.disabled && ctaNonDisabledStyle}
 `;
 
 const ctaNonDisabledStyle = css`
-  background-image: linear-gradient(#d5d5d54a 30%, transparent);
-  box-shadow: 0 3px 6px #000000b0, 0 -2px 10px #d68c0233;
+  background-image: linear-gradient(rgba(213, 213, 213, 0.28) 30%, transparent);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.69), 0 -2px 10px rgba(214, 140, 2, 0.2);
 `;
 
 const StyledButton = styled.button`

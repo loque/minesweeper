@@ -62,20 +62,18 @@ export function Select({ value, onChange, children, label }) {
 const StyledOption = styled(ListboxOption)`
   padding: 0.8em 1.2em;
   cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
   background-color: #322d2e;
   ${(props) => props.selected && selectedStyle}
   ${(props) => !props.selected && unselectedStyle}
 `;
 
 const unselectedStyle = css`
-  color: rgba(255, 255, 255, 0.699);
   &:hover {
-    /* filter: brightness(1.2); */
     background-color: #3c3637;
   }
 `;
 const selectedStyle = css`
-  /* color: #d68c02; */
   filter: brightness(0.9);
 `;
 
