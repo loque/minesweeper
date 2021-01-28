@@ -6,7 +6,7 @@ import {
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
 import { useGameState, useGameResult } from "../lib/useGame";
-import { Button, Link } from "../ui/button";
+import { Button } from "../ui/form";
 import styled from "styled-components";
 
 export default function EndGame({ game, reset }) {
@@ -34,10 +34,10 @@ export default function EndGame({ game, reset }) {
         <ReloadIcon />
         Play
       </Button>
-      <Link href="/results" className="icon-text">
+      <Button href="/results" className="icon-text">
         <MedalIcon />
         Results
-      </Link>
+      </Button>
     </EndGameWrapper>
   );
 }

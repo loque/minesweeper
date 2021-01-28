@@ -13,8 +13,9 @@ import {
 } from "react-icons/ri";
 import { msToMS } from "../lib/utils";
 import { View, Container } from "../ui/layout";
-import { Button, Link } from "../ui/button";
+import { Button } from "../ui/form";
 import { Table, THead, TBody, Tr, Td } from "../ui/table";
+import styled from "styled-components";
 
 export default function Results() {
   const config = useConfig();
@@ -23,20 +24,20 @@ export default function Results() {
       <Container>
         <Header
           title={
-            <h1 className="results-title">
+            <ResultsTitle>
               <MedalIcon />
               Top 10
-            </h1>
+            </ResultsTitle>
           }
           setupBtn={true}
           playAgainBtn={false}
         />
 
         <div className="play-again-wrapper">
-          <Link className="icon-text" href="/game">
+          <Button className="icon-text" href="/game">
             <ReloadIcon />
             Play again
-          </Link>
+          </Button>
         </div>
 
         {!!config.results.length && (
@@ -93,18 +94,6 @@ export default function Results() {
             </TBody>
           </Table>
         )}
-
-        {!!config.results.length && (
-          <div className="clear-btn-wrapper">
-            <Button
-              className="icon-text clear-btn"
-              onClick={() => config.clearResults()}
-            >
-              <ClearIcon />
-              Clear results
-            </Button>
-          </div>
-        )}
       </Container>
     </View>
   );
@@ -127,3 +116,11 @@ function sortResults(a, b) {
 
   return 0;
 }
+
+const ResultsTitle = styled.h1`
+  display: flex;
+  align-items: center;
+  svg {
+    margin-right: 0.5em;
+  }
+`;

@@ -1,5 +1,4 @@
 import Head from "next/head";
-// import "../styles/Setup.module.scss";
 import { useEffect, useRef } from "react";
 import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
@@ -9,15 +8,9 @@ import {
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
 import { levels } from "../lib/useGame";
-import {
-  View,
-  Container,
-  Section,
-  SectionTitle,
-  SectionBody,
-} from "../ui/layout";
-import { Button, Link } from "../ui/button";
-import { Input } from "../ui/form";
+import { View, Container, SectionTitle } from "../ui/layout";
+import { Input, Button, Small, Select, Option } from "../ui/form";
+import { Center, Row, Col } from "../ui/flex";
 
 export default function Home() {
   const config = useConfig();
@@ -35,66 +28,66 @@ export default function Home() {
     config.setUsername(username);
   }
 
-  function selectLevel(level) {
-    return () => config.setLevel(level);
-  }
+  // function selectLevel(level) {
+  //   return () => config.setLevel(level);
+  // }
 
   return (
     <View>
-      <Container>
+      <Container gap="4em" align="stretch">
         <Header setupBtn={false} />
-        <Section>
+        <div>
           <SectionTitle>
             <UserIcon />
             Set your username
           </SectionTitle>
-          <SectionBody username>
+          <Col align="stretch">
             <Input
               type="text"
               ref={autofocus}
               value={config.username}
               onChange={changeUsername}
             />
-            <small
-              className={config.username.length !== 3 ? "shown" : "hidden"}
-            >
+            <Small hide={config.username.length === 3}>
               (*) username must be alphanumeric and 3 characters long.
-            </small>
-          </SectionBody>
-        </Section>
-        <Section>
+            </Small>
+          </Col>
+        </div>
+        <Col align="stretch" style={{ marginBottom: "calc(0.5em + 0.76rem)" }}>
           <SectionTitle>
             <LevelIcon /> Select level
           </SectionTitle>
-          <SectionBody level>
+          <Select
+            value={config.level}
+            onChange={config.setLevel}
+            label={(val) => `Level ${val}`}
+          >
             {levels.map((_, levelIdx) => {
               const level = levelIdx + 1;
               return (
-                <Button
-                  key={levelIdx}
-                  selected={String(config.level) === String(level)}
-                  onClick={selectLevel(level)}
-                >
-                  {level}
-                </Button>
+                <Option key={levelIdx} value={level}>
+                  Level {level}
+                </Option>
               );
             })}
-          </SectionBody>
-        </Section>
-        <Link
-          textIcon
-          cta
-          // className="playBtn"
-          href={"/game"}
-          onClick={(ev) => {
-            if (config.username.length < 3) {
-              ev.preventDefault();
-            }
-          }}
-        >
-          Play
-          <PlayIcon className="yellow" />
-        </Link>
+          </Select>
+        </Col>
+        <Center>
+          <Button
+            cta
+            large
+            href={"/game"}
+            disabled={config.username.length !== 3}
+            onClick={(ev) => {
+              if (config.username.length < 3) {
+                ev.preventDefault();
+              }
+            }}
+          >
+            Play
+            <PlayIcon className="yellow" />
+          </Button>
+        </Center>
       </Container>
     </View>
   );

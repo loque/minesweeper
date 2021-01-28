@@ -4,7 +4,7 @@ import {
   RiRefreshLine as ReloadIcon,
 } from "react-icons/ri";
 import { Header as StyledHeader } from "../ui/layout";
-import { Link } from "../ui/button";
+import { Button } from "../ui/form";
 
 export default function Header({
   title = null,
@@ -17,17 +17,17 @@ export default function Header({
       {title && title}
       {!title && <h1>minesweeper</h1>}
       {playAgainBtn && (
-        <Link className="icon-text" href="/game">
+        <Button className="icon-text" href="/game">
           <span>
             <ReloadIcon />
             Play again
           </span>
-        </Link>
+        </Button>
       )}
       {setupBtn && (
-        <Link href="/" className="transparent" title="Setup">
+        <Button href="/" className="transparent" title="Setup">
           <SetupIcon />
-        </Link>
+        </Button>
       )}
       {backBtn && (
         <button
