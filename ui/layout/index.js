@@ -21,10 +21,6 @@ export const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* margin-bottom: 2rem; */
-  h1 {
-    margin: 0;
-  }
 `;
 
 export const SectionTitle = styled.h3`
