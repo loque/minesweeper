@@ -40,7 +40,7 @@ function wrapTextChildInSpan(children) {
   return safeChildren;
 }
 
-export const baseStyles = css`
+export const baseStyle = css`
   background-color: ${(props) =>
     props.transparent ? "transparent" : "rgb(52,47,48)"};
   cursor: pointer;
@@ -58,7 +58,6 @@ export const baseStyles = css`
     }
   }
   ${(props) => !props.disabled && baseNonDisabledStyle}
-  /* ${(props) => props.selected && "color: #d68c02 !important;"} */
 `;
 
 const b = 1.5;
@@ -94,12 +93,12 @@ const ctaNonDisabledStyle = css`
 
 const StyledButton = styled.button`
   ${common}
-  ${baseStyles}
+  ${baseStyle}
   ${(props) => props.cta && ctaStyle}
 `;
 
 const StyledAnchor = styled.a`
   ${common}
-  ${baseStyles}
+  ${baseStyle}
   ${(props) => props.cta && ctaStyle}
 `;

@@ -12,7 +12,7 @@ import { getCollisions } from "@reach/popover";
 // import "@reach/listbox/styles.css";
 import { RiArrowDownSLine as ArrowDownIcon } from "react-icons/ri";
 import common from "./common";
-import { baseStyles } from "./button";
+import { baseStyle } from "./button";
 
 const StyledInput = styled(ListboxInput)`
   display: inline-block;
@@ -20,7 +20,7 @@ const StyledInput = styled(ListboxInput)`
 
 const StyledButton = styled(ListboxButton)`
   ${common}
-  ${baseStyles}
+  ${baseStyle}
   justify-content: space-between;
 
   & > span {
