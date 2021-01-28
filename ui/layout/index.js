@@ -7,7 +7,10 @@ export const View = styled.div`
   align-items: center;
 `;
 
-export const Container = styled(Col)`
+export const Container = styled(Col).attrs((props) => ({
+  gap: "4em",
+  align: "stretch",
+}))`
   margin: 2rem 0 4rem;
   padding: 0 1rem;
   max-width: 500px;

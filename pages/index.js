@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <View>
-      <Container gap="4em" align="stretch">
+      <Container>
         <Header setupBtn={false} />
         <div>
           <SectionTitle>
