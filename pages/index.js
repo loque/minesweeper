@@ -10,7 +10,7 @@ import {
 import { levels } from "../lib/useGame";
 import { View, Container, SectionTitle } from "../ui/layout";
 import { Input, Button, Small, Select, Option } from "../ui/form";
-import { Center, Row, Col } from "../ui/flex";
+import { Center, Col } from "../ui/flex";
 
 export default function Home() {
   const config = useConfig();
@@ -27,10 +27,6 @@ export default function Home() {
     username = username.slice(0, 3);
     config.setUsername(username);
   }
-
-  // function selectLevel(level) {
-  //   return () => config.setLevel(level);
-  // }
 
   return (
     <View>
@@ -85,7 +81,7 @@ export default function Home() {
             }}
           >
             Play
-            <PlayIcon className="yellow" />
+            <PlayIcon />
           </Button>
         </Center>
       </Container>
