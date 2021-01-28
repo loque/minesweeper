@@ -9,7 +9,9 @@ export const View = styled.div`
 
 export const Container = styled(Col)`
   margin: 2rem 0 4rem;
-  min-width: 400px;
+  padding: 0 1rem;
+  max-width: 500px;
+  width: 100%;
 `;
 
 export const Header = styled.header`
