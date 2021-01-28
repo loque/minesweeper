@@ -56,10 +56,10 @@ const StyledList = styled(ListboxList)`
   }
 `;
 
-export function Select({ value, onChange, children, label }) {
+export function Select({ value, onChange, children, label, large }) {
   return (
     <StyledInput value={value} onChange={onChange}>
-      <StyledButton arrow={ArrowDownIcon}>
+      <StyledButton arrow={ArrowDownIcon} large={large}>
         {typeof label === "function" ? label(value) : value}
       </StyledButton>
       <StyledPopover position={positionDefault}>

@@ -27,6 +27,7 @@ const Template = (args) => {
 
 const defaultPropValues = {
   disabled: false,
+  large: false,
 };
 
 export const Default = Template.bind({});
