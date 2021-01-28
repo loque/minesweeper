@@ -108,7 +108,7 @@ export default function Game() {
   return (
     <View>
       <Container>
-        <Header />
+        <Header setupBtn />
         <StatusBar key={"statusbar:" + game.key} game={game} />
         <Board ref={boardRef} game={game} />
         {gameState === "ENDED" && <EndGame game={game} reset={reset} />}
