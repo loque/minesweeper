@@ -1,4 +1,3 @@
-import "../styles/globals.css";
 import { RecoilRoot } from "recoil";
 import { ConfigProvider } from "../lib/useConfig";
 import { GlobalStyle } from "../ui/GlobalStyle";
