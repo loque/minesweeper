@@ -9,6 +9,7 @@ import { useGameState, useFlagsCount } from "../lib/useGame";
 import useConfig from "../lib/useConfig";
 import { msToMS } from "../lib/utils";
 import styled from "styled-components";
+import { Row } from "../ui/flex";
 
 function ElapsedTime({ startDateTime, run }) {
   const [elapsedTime, setElapsedTime] = useState("00:00");
@@ -34,10 +35,7 @@ function ElapsedTime({ startDateTime, run }) {
   );
 }
 
-const StyledStatusBar = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const StyledStatusBar = styled(Row)`
   height: 4rem;
   position: sticky;
   top: 0;
@@ -59,7 +57,7 @@ export default function StatusBar({ game }) {
   const flagsCount = useFlagsCount(game);
 
   return (
-    <StyledStatusBar>
+    <StyledStatusBar justify="between">
       <Pill className="icon-text" title="Username">
         <UserIcon /> {config.username}
       </Pill>
