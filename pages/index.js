@@ -31,7 +31,7 @@ export default function Home() {
   return (
     <View>
       <Container>
-        <Header setupBtn={false} />
+        <Header />
         <div>
           <SectionTitle>
             <UserIcon />

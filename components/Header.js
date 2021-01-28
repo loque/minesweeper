@@ -8,7 +8,7 @@ import { Button } from "../ui/form";
 
 export default function Header({
   title = null,
-  setupBtn = true,
+  setupBtn = false,
   backBtn = false,
   playAgainBtn = false,
 }) {
