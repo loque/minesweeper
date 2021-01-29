@@ -10,13 +10,15 @@ export default css`
   &:focus:not(:disabled),
   &:active:not(:disabled) {
     outline: none;
-    border-color: #d68c024a;
-    box-shadow: 0 0 6px #d68c024a;
+    border-color: ${(p) => p.theme.accentAlpha};
+    box-shadow: 0 0 6px ${(p) => p.theme.accentAlpha};
   }
 
   ${(props) => !props.disabled && nonDisabledStyle}
   ${(props) => props.disabled && disabledStyle}
   ${(props) => props.large && largeStyle}
+  ${(props) => props.edgeLeft && edgeLeftStyle}
+  ${(props) => props.edgeRight && edgeRightStyle}
 `;
 
 const largeStyle = css`
@@ -34,4 +36,12 @@ const nonDisabledStyle = css`
 const disabledStyle = css`
   cursor: not-allowed;
   filter: opacity(60%);
+`;
+
+const edgeLeftStyle = css`
+  margin-left: -1.4em;
+`;
+
+const edgeRightStyle = css`
+  margin-right: -1.4em;
 `;

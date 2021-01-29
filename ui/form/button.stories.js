@@ -3,6 +3,7 @@ import { Button } from "./button";
 import {
   RiPlayFill as PlayIcon,
   RiEmotionFill as HappyIcon,
+  RiMenuLine as MenuIcon,
 } from "react-icons/ri";
 
 export default {
@@ -15,7 +16,13 @@ export default {
 
 const Template = (args) => <Button {...args} />;
 
-const defaultPropValues = { cta: false, large: false, disabled: false };
+const defaultPropValues = {
+  cta: false,
+  large: false,
+  disabled: false,
+  ghost: false,
+  rounded: false,
+};
 
 export const Text = Template.bind({});
 Text.args = {
@@ -50,4 +57,14 @@ CTA.args = {
   ...defaultPropValues,
   children: "Call to action",
   cta: true,
+};
+
+export const Ghost = Template.bind({});
+Ghost.args = {
+  ...defaultPropValues,
+  children: <MenuIcon />,
+  ghost: true,
+  rounded: true,
+  edgeRight: true,
+  href: "#",
 };

@@ -50,7 +50,7 @@ const EndGameWrapper = styled.div`
   margin-top: 6px;
   padding: 2rem 0;
   width: 100%;
-  background-color: #292425;
+  background-color: ${(p) => p.theme.color.bg};
   gap: 1rem;
   &:after {
     content: "";
@@ -59,7 +59,10 @@ const EndGameWrapper = styled.div`
     left: 0;
     right: 0;
     height: 10px;
-    background-image: linear-gradient(transparent, #29242563);
+    background-image: linear-gradient(
+      transparent,
+      ${(p) => p.theme.color.bgAlpha}
+    );
   }
 `;
 

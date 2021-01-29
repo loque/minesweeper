@@ -10,10 +10,9 @@ const hiddenStyle = css`
 `;
 
 export const Small = styled.small`
-  color: #d68c02;
+  color: ${(p) => p.theme.color.accent};
   font-size: 0.76rem;
   text-align: right;
-  /* padding: 0.5rem 0; */
   opacity: 0.8;
   cursor: default;
   ${(props) => props.hide && hiddenStyle}

@@ -41,7 +41,7 @@ const slide = keyframes`
 const StyledPopover = styled(ListboxPopover)`
   background-color: #322d2e;
   border-radius: 5px;
-  border: 1px solid #d68c024a;
+  border: 1px solid ${(p) => p.theme.accentAlpha};
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.29);
   animation: ${slide} 200ms ease-in-out;
 `;

@@ -25,7 +25,7 @@ export default function Header({
         </Button>
       )}
       {setupBtn && (
-        <Button href="/" className="transparent" title="Setup">
+        <Button href="/" edgeRight ghost rounded title="Setup">
           <SetupIcon />
         </Button>
       )}

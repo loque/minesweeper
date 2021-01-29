@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import {
   RiUser3Fill as UserIcon,
-  RiFlag2Fill as FlagIcon,
-  RiTimerFill as TimeIcon,
+  RiFlag2Fill,
+  RiTimerFill,
   RiFlashlightFill as LevelIcon,
 } from "react-icons/ri";
+import styled from "styled-components";
 import { useGameState, useFlagsCount } from "../lib/useGame";
 import useConfig from "../lib/useConfig";
 import { msToMS } from "../lib/utils";
-import styled from "styled-components";
 import { Row } from "../ui/flex";
 
 function ElapsedTime({ startDateTime, run }) {
@@ -29,8 +29,8 @@ function ElapsedTime({ startDateTime, run }) {
     };
   }, [startDateTime, run]);
   return (
-    <Pill className="icon-text" title="Elapsed time">
-      <TimeIcon className="yellow" /> {elapsedTime}
+    <Pill title="Elapsed time" ghost>
+      <TimeIcon /> {elapsedTime}
     </Pill>
   );
 }
@@ -40,15 +40,23 @@ const StyledStatusBar = styled(Row)`
   position: sticky;
   top: 0;
   z-index: 2;
-  background-color: #292425;
+  background-color: ${(p) => p.theme.color.bg};
 `;
 
-const Pill = styled.div`
-  background-color: #ffffff0d;
+const Pill = styled(Row)`
+  background-color: ${(props) => (props.ghost ? "transparent" : "#ffffff0d")};
   color: rgba(255, 255, 255, 0.4);
-  padding: 0.2rem 1rem 0.2rem 0.5rem !important;
+  padding: 0.3rem 0.7rem;
   border-radius: 5px;
   font-size: 0.9rem;
+  gap: 0.5em;
+`;
+
+const FlagIcon = styled(RiFlag2Fill)`
+  color: ${(p) => p.theme.color.red};
+`;
+const TimeIcon = styled(RiTimerFill)`
+  color: ${(p) => p.theme.color.yellow};
 `;
 
 export default function StatusBar({ game }) {
@@ -58,17 +66,17 @@ export default function StatusBar({ game }) {
 
   return (
     <StyledStatusBar justify="between">
-      <Pill className="icon-text" title="Username">
+      <Pill title="Username">
         <UserIcon /> {config.username}
       </Pill>
-      <Pill className="icon-text" title="Flag count">
-        <FlagIcon className="red" /> {flagsCount}
+      <Pill title="Flag count" ghost>
+        <FlagIcon /> {flagsCount}
       </Pill>
       <ElapsedTime
         startDateTime={game.startDateTime}
         run={gameState === "PLAYING"}
       />
-      <Pill className="icon-text" title="Level">
+      <Pill title="Level">
         <LevelIcon /> {config.level}
       </Pill>
     </StyledStatusBar>

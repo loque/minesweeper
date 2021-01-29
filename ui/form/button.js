@@ -12,9 +12,9 @@ export const Button = forwardRef(function Button(
   if (typeof href === "string") {
     return (
       <NextLink href={href} {...props}>
-        <StyledAnchor {...props} tabIndex="0">
+        <StyledButton as="a" {...props} tabIndex="0">
           {safeChildren}
-        </StyledAnchor>
+        </StyledButton>
       </NextLink>
     );
   }
@@ -41,8 +41,7 @@ function wrapTextChildInSpan(children) {
 }
 
 export const baseStyle = css`
-  background-color: ${(props) =>
-    props.transparent ? "transparent" : "rgb(52,47,48)"};
+  background-color: rgb(52, 47, 48);
   cursor: pointer;
   text-decoration: none;
   display: flex;
@@ -50,14 +49,16 @@ export const baseStyle = css`
   justify-content: center;
   user-select: none;
   & > svg {
-    &:first-child {
+    &:first-child:not(::last-child) {
       margin-right: 0.4em;
     }
-    &:last-child {
+    &:last-child:not(:first-child) {
       margin-left: 0.4em;
     }
   }
   ${(props) => !props.disabled && baseNonDisabledStyle}
+  ${(props) => props.ghost && ghostStyle}
+  ${(props) => props.rounded && roundedStyle}
 `;
 
 const b = 1.5;
@@ -72,8 +73,34 @@ const baseNonDisabledStyle = css`
   }
 `;
 
+const ghostStyle = css`
+  background-color: transparent;
+  background-image: none;
+  border-color: transparent;
+  box-shadow: none;
+  &:focus:not(:disabled),
+  &:active:not(:disabled) {
+    outline: none;
+    border-color: transparent;
+    box-shadow: none;
+    background-color: rgb(52, 47, 48, 0.6) !important;
+  }
+  &:hover {
+    background-color: rgb(52, 47, 48, 0.6);
+  }
+`;
+
+const roundedStyle = css`
+  padding: 0;
+  width: 3.6em;
+  border-radius: 50%;
+  svg {
+    font-size: 1.2rem;
+  }
+`;
+
 const ctaStyle = css`
-  background-color: #d68c02;
+  background-color: ${(p) => p.theme.color.accent};
   color: rgba(0, 0, 0, 0.75);
   font-weight: 600;
   text-transform: uppercase;
@@ -92,12 +119,6 @@ const ctaNonDisabledStyle = css`
 `;
 
 const StyledButton = styled.button`
-  ${common}
-  ${baseStyle}
-  ${(props) => props.cta && ctaStyle}
-`;
-
-const StyledAnchor = styled.a`
   ${common}
   ${baseStyle}
   ${(props) => props.cta && ctaStyle}
