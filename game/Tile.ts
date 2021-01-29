@@ -21,8 +21,10 @@ export default class Tile {
   #colIdx: number = 0;
   hasMine: boolean = false;
   #adjacent: Tile[] = [];
-  #subscriptions: { [key in EventName]: { [id: string]: EventCallback } };
-  causeOfDefeat: boolean = false;
+  #subscriptions: {
+    [key in EventName]: { [id: string]: EventCallback };
+  };
+  isCauseOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
     this.#key = gameKey + ":tile" + getId();

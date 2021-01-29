@@ -138,7 +138,7 @@ export default class Minesweeper {
     if (!tile.reveal()) return;
 
     if (tile.hasMine && endIfMineIsFound) {
-      tile.causeOfDefeat = true;
+      tile.isCauseOfDefeat = true;
       return this.gameLost();
     }
     if (this.allSafeTilesRevealed()) return this.gameWon();
@@ -182,7 +182,7 @@ export default class Minesweeper {
     adjacentHidden.map((t) => t.reveal()).some((res) => res);
     const adjacentHiddenMine = adjacentHidden.find((tl) => tl.hasMine);
     if (!!adjacentHiddenMine) {
-      adjacentHiddenMine.causeOfDefeat = true;
+      adjacentHiddenMine.isCauseOfDefeat = true;
       return this.gameLost();
     }
 

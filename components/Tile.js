@@ -66,7 +66,7 @@ export default function Tile({
       revealed={tileState === "REVEALED"}
       hasMine={tile.hasMine}
       scanned={isBeingScanned}
-      isCauseOfDefeat={tile.causeOfDefeat}
+      isCauseOfDefeat={tile.isCauseOfDefeat}
       value={tile.value}
     >
       <img
