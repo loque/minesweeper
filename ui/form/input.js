@@ -2,7 +2,7 @@ import styled, { css } from "styled-components";
 import common from "./common";
 
 const baseFormElementStyle = css`
-  background-color: #342f30b8;
+  background-color: ${(p) => p.theme.color.formBg};
   margin-bottom: 0.5em;
 `;
 

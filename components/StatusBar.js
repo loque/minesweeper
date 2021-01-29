@@ -44,7 +44,8 @@ const StyledStatusBar = styled(Row)`
 `;
 
 const Pill = styled(Row)`
-  background-color: ${(props) => (props.ghost ? "transparent" : "#ffffff0d")};
+  background-color: ${(props) =>
+    props.ghost ? "transparent" : "rgba(255,255,255,0.05)"};
   color: rgba(255, 255, 255, 0.4);
   padding: 0.3rem 0.7rem;
   border-radius: 5px;

@@ -5,7 +5,7 @@ export default css`
   padding: 0 1.4em;
   height: 3.6em;
   border-radius: 5px;
-  border: 1px solid #8e8e8e1c;
+  border: 1px solid ${(p) => p.theme.color.formBorder};
   color: rgba(255, 255, 255, 0.5);
   &:focus:not(:disabled),
   &:active:not(:disabled) {
@@ -27,7 +27,7 @@ const largeStyle = css`
 `;
 
 const nonDisabledStyle = css`
-  box-shadow: 0 3px 6px #0000002b;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.168);
   &:hover {
     filter: brightness(1.1);
   }

@@ -39,9 +39,9 @@ const slide = keyframes`
 `;
 
 const StyledPopover = styled(ListboxPopover)`
-  background-color: #322d2e;
+  background-color: ${(p) => p.theme.color.bgLight};
   border-radius: 5px;
-  border: 1px solid ${(p) => p.theme.accentAlpha};
+  border: 1px solid ${(p) => p.theme.color.accentAlpha};
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.29);
   animation: ${slide} 200ms ease-in-out;
 `;
@@ -73,14 +73,14 @@ export const Option = styled(ListboxOption)`
   padding: 0.8em 1.2em;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.5);
-  background-color: #322d2e;
+  background-color: ${(p) => p.theme.color.bgLight};
   &[data-current] {
     color: rgba(255, 255, 255, 0.4);
-    background-color: #282425;
+    background-color: ${(p) => p.theme.color.bgDark};
   }
   &[aria-selected="true"],
   &:hover {
-    background-color: #3c3637;
+    background-color: ${(p) => p.theme.color.bgLighter};
   }
 `;
 
