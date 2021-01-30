@@ -1,3 +1,4 @@
+import EventEmitter from "./EventEmitter";
 import Tile, { TileState } from "./Tile";
 import { shuffle } from "../lib/utils";
 
@@ -27,18 +28,18 @@ interface Board {
 }
 
 type Cluster = Set<number>;
+
 enum EventName {
   "stateChange" = "stateChange",
   "resultChange" = "resultChange",
   "flagsCountChange" = "flagsCountChange",
 }
-type EventCallback = (payload: any) => void;
 
 let id = 0;
 function getId() {
   return id++;
 }
-export default class Minesweeper {
+export default class Minesweeper extends EventEmitter {
   #key: string = "";
   #state: GameState = GameState.IDLE;
   #result: GameResult = GameResult.NONE;
@@ -47,12 +48,12 @@ export default class Minesweeper {
   #startDateTime: Date | null = null;
   #endDateTime: Date | null = null;
   #minesPlaced: boolean = false;
-  #subscriptions: { [key in EventName]: { [id: string]: EventCallback } };
 
   constructor(config: BoardConfig) {
+    super();
     this.key = "game" + getId();
     this.#config = config;
-    this.#subscriptions = {
+    this.subscriptions = {
       [EventName.stateChange]: {},
       [EventName.resultChange]: {},
       [EventName.flagsCountChange]: {},
@@ -125,7 +126,7 @@ export default class Minesweeper {
   }
 
   private dispatchFlagsCount() {
-    this.dispatch(EventName.flagsCountChange, this.flagsCount);
+    this.emit(EventName.flagsCountChange, this.flagsCount);
   }
 
   reveal(absIdx: number, endIfMineIsFound = true) {
@@ -269,27 +270,27 @@ export default class Minesweeper {
 
   private gameReady() {
     this.#state = GameState.READY;
-    this.dispatch(EventName.stateChange, this.#state);
+    this.emit(EventName.stateChange, this.#state);
     return true;
   }
 
   private gameStart() {
     this.#startDateTime = new Date();
     this.#state = GameState.PLAYING;
-    this.dispatch(EventName.stateChange, this.#state);
+    this.emit(EventName.stateChange, this.#state);
     return true;
   }
 
   private gameLost() {
     this.#result = GameResult.LOST;
-    this.dispatch(EventName.resultChange, this.#result);
+    this.emit(EventName.resultChange, this.#result);
     this.gameEnd();
     return true;
   }
 
   private gameWon() {
     this.#result = GameResult.WON;
-    this.dispatch(EventName.resultChange, this.#result);
+    this.emit(EventName.resultChange, this.#result);
     this.gameEnd();
     return true;
   }
@@ -297,23 +298,10 @@ export default class Minesweeper {
   private gameEnd() {
     this.#endDateTime = new Date();
     this.#state = GameState.ENDED;
-    this.dispatch(EventName.stateChange, this.#state);
+    this.emit(EventName.stateChange, this.#state);
     this.#board.list
       .filter((tl) => tl.hasMine && tl.state === TileState.HIDDEN)
       .forEach((tl) => tl.reveal());
-  }
-
-  subscribe(evName: EventName, callback: EventCallback): () => void {
-    const subId = getId();
-    this.#subscriptions[evName][subId] = callback;
-    return () => {
-      delete this.#subscriptions[evName][subId];
-    };
-  }
-
-  private dispatch(evName: EventName, payload: any) {
-    const callbacks = Object.values(this.#subscriptions[evName]);
-    callbacks.forEach((callback) => callback(payload));
   }
 }
 

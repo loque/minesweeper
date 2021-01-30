@@ -82,29 +82,27 @@ export const gameSelector = selector({
 export function useGameState() {
   const game = useRecoilValue(gameSelector);
   const [gameState, setGameState] = useState(game?.state());
-  useEffect(() => game && game.subscribe("stateChange", setGameState), [game]);
+  useEffect(() => game && game.on("stateChange", setGameState), [game]);
   return gameState;
 }
 
 export function useGameResult() {
   const game = useRecoilValue(gameSelector);
   const [gameResult, setGameResult] = useState(game?.result());
-  useEffect(() => game && game.subscribe("resultChange", setGameResult), [
-    game,
-  ]);
+  useEffect(() => game && game.on("resultChange", setGameResult), [game]);
   return gameResult;
 }
 
 export function useFlagsCount() {
   const game = useRecoilValue(gameSelector);
   const [flagsCount, setFlagsCount] = useState(game.totalMines);
-  useEffect(() => game.subscribe("flagsCountChange", setFlagsCount), [game]);
+  useEffect(() => game.on("flagsCountChange", setFlagsCount), [game]);
   return flagsCount;
 }
 
 export function useTileState(tile) {
   const [tileState, setTileState] = useState(tile.state);
-  useEffect(() => tile.subscribe("stateChange", setTileState), [tile]);
+  useEffect(() => tile.on("stateChange", setTileState), [tile]);
   return tileState;
 }
 

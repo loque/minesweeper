@@ -1,3 +1,5 @@
+import EventEmitter from "./EventEmitter";
+
 export enum TileState {
   HIDDEN = "HIDDEN",
   FLAGGED = "FLAGGED",
@@ -7,13 +9,12 @@ export enum TileState {
 enum EventName {
   "stateChange" = "stateChange",
 }
-type EventCallback = (payload: any) => void;
 
 let id = 0;
 function getId() {
   return id++;
 }
-export default class Tile {
+export default class Tile extends EventEmitter {
   #key: string;
   #state: TileState = TileState.HIDDEN;
   #absIdx: number = 0;
@@ -21,17 +22,15 @@ export default class Tile {
   #colIdx: number = 0;
   hasMine: boolean = false;
   #adjacent: Tile[] = [];
-  #subscriptions: {
-    [key in EventName]: { [id: string]: EventCallback };
-  };
   isCauseOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
+    super();
     this.#key = gameKey + ":tile" + getId();
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
     this.#colIdx = colIdx;
-    this.#subscriptions = {
+    this.subscriptions = {
       [EventName.stateChange]: {},
     };
   }
@@ -71,7 +70,7 @@ export default class Tile {
   flag(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.FLAGGED;
-      this.dispatch(EventName.stateChange, this.#state);
+      this.emit(EventName.stateChange, this.#state);
       return true;
     }
     return false;
@@ -80,7 +79,7 @@ export default class Tile {
   unflag(): boolean {
     if (this.#state === TileState.FLAGGED) {
       this.#state = TileState.HIDDEN;
-      this.dispatch(EventName.stateChange, this.#state);
+      this.emit(EventName.stateChange, this.#state);
       return true;
     }
     return false;
@@ -89,23 +88,10 @@ export default class Tile {
   reveal(): boolean {
     if (this.#state === TileState.HIDDEN) {
       this.#state = TileState.REVEALED;
-      this.dispatch(EventName.stateChange, this.#state);
+      this.emit(EventName.stateChange, this.#state);
       return true;
     }
     return false;
-  }
-
-  subscribe(evName: EventName, callback: EventCallback): () => void {
-    const subId = getId();
-    this.#subscriptions[evName][subId] = callback;
-    return () => {
-      delete this.#subscriptions[evName][subId];
-    };
-  }
-
-  private dispatch(evName: EventName, payload: any) {
-    const callbacks = Object.values(this.#subscriptions[evName]);
-    callbacks.forEach((callback) => callback(payload));
   }
 
   log() {
