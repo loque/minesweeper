@@ -1,13 +1,9 @@
 import { forwardRef } from "react";
 import { useSetRecoilState } from "recoil";
 import { scanTargetsSelector } from "../game/states";
-import { useGameState } from "../lib/useGame";
 import Tile from "./Tile";
-import styled from "styled-components";
 
 export default forwardRef(function Board({ game }, ref) {
-  const [gameState] = useGameState(game);
-
   const tilesInRow = game.board[0].length;
 
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
