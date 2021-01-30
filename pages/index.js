@@ -29,7 +29,7 @@ export default function Home() {
     setUsername(nextUsername);
   }
 
-  function playHandler() {
+  function playHandler(ev) {
     return username.length < 3 && ev.preventDefault();
   }
 
