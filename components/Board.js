@@ -32,34 +32,38 @@ export default forwardRef(function Board({ game }, ref) {
   }
 
   return (
-    <BoardWrapper ref={ref} onMouseLeave={mouseLeaveHandler}>
+    <div
+      ref={ref}
+      onMouseLeave={mouseLeaveHandler}
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+      }}
+    >
       {game.board.map((row, rowIdx) => (
-        <BoardRow key={rowIdx} onContextMenu={(ev) => ev.preventDefault()}>
+        <div
+          key={rowIdx}
+          onContextMenu={(ev) => ev.preventDefault()}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
           {row.map((tile) => (
             <Tile
               key={tile.key}
               tile={tile}
-              reveal={reveal}
-              revealAdjacent={revealAdjacent}
               flag={flag}
               unflag={unflag}
-              gameState={gameState}
+              reveal={reveal}
+              revealAdjacent={revealAdjacent}
               tilesInRow={tilesInRow}
             />
           ))}
-        </BoardRow>
+        </div>
       ))}
-    </BoardWrapper>
+    </div>
   );
 });
-
-const BoardWrapper = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-const BoardRow = styled.div`
-  display: flex;
-  flex-direction: row;
-`;

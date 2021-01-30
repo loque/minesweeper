@@ -50,94 +50,72 @@ export default function Tile({
     }
   }
 
+  const hiddenStyle = tileState === "HIDDEN";
+  const flaggedStyle = tileState === "FLAGGED";
+  const pointerStyle = hiddenStyle || flaggedStyle ? { cursor: "pointer" } : {};
+  const scannedStyle =
+    pointerStyle.cursor && isBeingScanned
+      ? { backgroundColor: "#4d4d4d", transform: "scale(0.94)" }
+      : {};
+  const revealedStyle =
+    tileState === "REVEALED" ? { backgroundColor: "#8c8b8b" } : {};
+  const hasMineStyle =
+    revealedStyle.backgroundColor && tile.hasMine
+      ? { color: "black", backgroundColor: "#707070" }
+      : {};
+  const isCauseOfDefeatStyle =
+    hasMineStyle.color && tile.isCauseOfDefeat
+      ? { backgroundColor: "#d04a4a" }
+      : {};
+
   return (
-    <StyledTile
+    <div
       style={{
+        position: "relative",
+        display: "block",
+        borderRadius: "4px",
+        transition: "transform 100ms ease-in-out",
+        backgroundColor: "#373737",
         width: `calc(${100 / tilesInRow}% - ${tileMargin * 2}px)`,
         margin: tileMargin + "px",
         fontSize: tileMargin + "em",
+        color: color[Math.min(tile.value, color.length - 1)],
+        ...pointerStyle,
+        ...scannedStyle,
+        ...revealedStyle,
+        ...hasMineStyle,
+        ...isCauseOfDefeatStyle,
       }}
       onMouseUp={mouseUpHandler}
       onMouseEnter={mouseEnterHandler}
       onContextMenu={contextMenuHandler}
-      disabled={gameState === "ENDED"}
-      hidden={tileState === "HIDDEN"}
-      flagged={tileState === "FLAGGED"}
-      revealed={tileState === "REVEALED"}
-      hasMine={tile.hasMine}
-      scanned={isBeingScanned}
-      isCauseOfDefeat={tile.isCauseOfDefeat}
-      value={tile.value}
     >
       <img
         src={"/tile.png"}
         alt="Tile"
         style={{ width: "100%", display: "block" }}
       />
-      <TileContent>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         {tileState === "REVEALED" &&
           !tile.hasMine &&
           !!tile.value &&
           tile.value}
         {tileState === "FLAGGED" && <FlagIcon className="red" />}
         {tileState === "REVEALED" && tile.hasMine && <MineIcon />}
-      </TileContent>
-    </StyledTile>
+      </div>
+    </div>
   );
 }
 
 const color = ["grey", "blue", "green", "#a40000", "rgb(2, 2, 119)"];
-
-const StyledTile = styled.div`
-  background-color: #373737;
-  border-radius: 4px;
-  position: relative;
-  transition: transform 100ms ease-in-out;
-  display: block;
-
-  ${(props) => props.hidden && !props.disabled && hiddenStyle}
-  ${(props) => props.flagged && !props.disabled && flaggedStyle}
-  ${(props) => props.revealed && revealedStyle}
-
-  color: ${(props) => color[Math.min(props.value, color.length - 1)]};
-`;
-
-const hiddenStyle = css`
-  cursor: pointer;
-  ${(props) => props.scanned && scannedStyle}
-`;
-
-const flaggedStyle = css`
-  cursor: pointer;
-  ${(props) => props.scanned && scannedStyle}
-`;
-
-const scannedStyle = css`
-  background-color: #4d4d4d;
-  transform: scale(0.94);
-`;
-
-const revealedStyle = css`
-  background-color: #8c8b8b;
-  ${(props) => props.hasMine && hasMineStyle}
-`;
-
-const hasMineStyle = css`
-  color: black;
-  background-color: #707070;
-  ${(props) => props.isCauseOfDefeat && isCauseOfDefeatStyle}
-`;
-const isCauseOfDefeatStyle = css`
-  background-color: #d04a4a;
-`;
-
-const TileContent = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
