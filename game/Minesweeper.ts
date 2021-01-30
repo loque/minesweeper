@@ -313,9 +313,7 @@ export default class Minesweeper {
 
   private dispatch(evName: EventName, payload: any) {
     const callbacks = Object.values(this.#subscriptions[evName]);
-    setTimeout(() => {
-      callbacks.forEach((callback) => callback(payload));
-    }, 0);
+    callbacks.forEach((callback) => callback(payload));
   }
 }
 

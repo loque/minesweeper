@@ -1,4 +1,112 @@
-import { atom, atomFamily, selector } from "recoil";
+import { useState, useEffect } from "react";
+import { atom, atomFamily, selector, useRecoilValue } from "recoil";
+import Minesweeper from "./Minesweeper";
+
+const levelAtom = atom({
+  key: "levelAtom",
+  default: (process.browser && localStorage.getItem("level")) || 1,
+});
+
+export const levelSelector = selector({
+  key: "levelSelector",
+  get: ({ get }) => get(levelAtom),
+  set: ({ set }, level) => {
+    localStorage.setItem("level", level);
+    const levelConfig = getLevelConfig(level);
+    set(gameAtom, new Minesweeper(levelConfig));
+    set(levelAtom, level);
+  },
+});
+
+const usernameAtom = atom({
+  key: "usernameAtom",
+  default: (process.browser && localStorage.getItem("username")) || "",
+});
+
+export const usernameSelector = selector({
+  key: "usernameSelector",
+  get: ({ get }) => get(usernameAtom),
+  set: ({ set }, username) => {
+    localStorage.setItem("username", username);
+    set(usernameAtom, username);
+  },
+});
+
+export const configSelector = selector({
+  key: "configSelector",
+  get: ({ get }) => ({ username: get(usernameAtom), level: get(levelAtom) }),
+});
+
+const resultsAtom = atom({
+  key: "resultsAtom",
+  default:
+    (process.browser && JSON.parse(localStorage.getItem("results"))) || [],
+});
+
+export const resultsSelector = selector({
+  key: "resultsSelector",
+  get: ({ get }) => get(resultsAtom),
+  set: ({ set, get }, newResult) => {
+    const results = get(resultsAtom);
+    results.push(newResult);
+    localStorage.setItem("results", JSON.stringify(results));
+    set(resultsAtom, [...results]);
+  },
+});
+
+export const levels = [
+  { rows: 10, cols: 10, mines: 20 },
+  { rows: 20, cols: 10, mines: 40 },
+  { rows: 30, cols: 10, mines: 60 },
+];
+
+function getLevelConfig(level) {
+  return levels[level - 1] || levels[0];
+}
+
+export const gameAtom = atom({
+  key: "gameAtom",
+  default: null,
+});
+
+export const gameSelector = selector({
+  key: "gameSelector",
+  get: ({ get }) => get(gameAtom),
+  set: ({ set, get }) => {
+    const level = get(levelAtom);
+    const levelConfig = getLevelConfig(level);
+    set(gameAtom, new Minesweeper(levelConfig));
+  },
+});
+
+export function useGameState() {
+  const game = useRecoilValue(gameSelector);
+  const [gameState, setGameState] = useState(game?.state());
+  useEffect(() => game && game.subscribe("stateChange", setGameState), [game]);
+  return gameState;
+}
+
+export function useGameResult() {
+  const game = useRecoilValue(gameSelector);
+  const [gameResult, setGameResult] = useState(game?.result());
+  useEffect(() => game && game.subscribe("resultChange", setGameResult), [
+    game,
+  ]);
+  return gameResult;
+}
+
+export function useFlagsCount() {
+  const game = useRecoilValue(gameSelector);
+  const [flagsCount, setFlagsCount] = useState(game.totalMines);
+  useEffect(() => game.subscribe("flagsCountChange", setFlagsCount), [game]);
+  return flagsCount;
+}
+
+export function useTileState(tile) {
+  const [tileState, setTileState] = useState(tile.state);
+  useEffect(() => tile.subscribe("stateChange", setTileState), [tile]);
+  return tileState;
+}
 
 export const tileIsScanned = atomFamily({
   key: "tileIsScanned",

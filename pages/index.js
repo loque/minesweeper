@@ -1,19 +1,20 @@
 import Head from "next/head";
 import { useEffect, useRef } from "react";
-import useConfig from "../lib/useConfig";
+import { useRecoilState } from "recoil";
+import { usernameSelector, levelSelector, levels } from "../game/states";
 import Header from "../components/Header";
 import {
   RiUser3Fill as UserIcon,
   RiFlashlightFill as LevelIcon,
   RiPlayFill as PlayIcon,
 } from "react-icons/ri";
-import { levels } from "../lib/useGame";
 import { View, Container, SectionTitle } from "../ui/layout";
 import { Input, Button, Small, Select, Option } from "../ui/form";
 import { Center, Col } from "../ui/flex";
 
 export default function Home() {
-  const config = useConfig();
+  const [username, setUsername] = useRecoilState(usernameSelector);
+  const [level, setLevel] = useRecoilState(levelSelector);
   const autofocus = useRef();
 
   useEffect(() => {
@@ -21,11 +22,15 @@ export default function Home() {
   }, [autofocus]);
 
   function changeUsername(e) {
-    let username = e.target.value.toUpperCase();
+    let nextUsername = e.target.value.toUpperCase();
     const re = /[A-Z0-9]+/g;
-    username = (username.match(re) || []).join("");
-    username = username.slice(0, 3);
-    config.setUsername(username);
+    nextUsername = (nextUsername.match(re) || []).join("");
+    nextUsername = nextUsername.slice(0, 3);
+    setUsername(nextUsername);
+  }
+
+  function playHandler() {
+    return username.length < 3 && ev.preventDefault();
   }
 
   return (
@@ -41,10 +46,10 @@ export default function Home() {
             <Input
               type="text"
               ref={autofocus}
-              value={config.username}
+              value={username}
               onChange={changeUsername}
             />
-            <Small hide={config.username.length === 3}>
+            <Small hide={username.length === 3}>
               (*) username must be alphanumeric and 3 characters long.
             </Small>
           </Col>
@@ -54,8 +59,8 @@ export default function Home() {
             <LevelIcon /> Select level
           </SectionTitle>
           <Select
-            value={config.level}
-            onChange={config.setLevel}
+            value={level}
+            onChange={setLevel}
             label={(val) => `Level ${val}`}
           >
             {levels.map((_, levelIdx) => {
@@ -73,12 +78,8 @@ export default function Home() {
             cta
             large
             href={"/game"}
-            disabled={config.username.length !== 3}
-            onClick={(ev) => {
-              if (config.username.length < 3) {
-                ev.preventDefault();
-              }
-            }}
+            disabled={username.length !== 3}
+            onClick={playHandler}
           >
             Play
             <PlayIcon />

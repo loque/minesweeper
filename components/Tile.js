@@ -1,21 +1,22 @@
 import { isEligibleForAdjacentReveal } from "../game/Minesweeper";
-import { scanTargetsSelector, tileIsScanned } from "../game/states";
 import { useSetRecoilState, useRecoilValue } from "recoil";
 import {
   RiFlag2Fill as FlagIcon,
   RiFocus3Fill as MineIcon,
 } from "react-icons/ri";
+import {
+  scanTargetsSelector,
+  tileIsScanned,
+  useTileState,
+} from "../game/states";
 import { tileMargin } from "../pages/game";
-import { useTileState } from "../lib/useGame";
-import styled, { css } from "styled-components";
 
 export default function Tile({
   tile,
-  reveal,
-  revealAdjacent,
   flag,
   unflag,
-  gameState,
+  reveal,
+  revealAdjacent,
   tilesInRow,
 }) {
   const tileState = useTileState(tile);

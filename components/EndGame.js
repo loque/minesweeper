@@ -1,22 +1,45 @@
 import { useRef, useEffect } from "react";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   RiRefreshLine as ReloadIcon,
   RiMedalFill as MedalIcon,
   RiEmotionFill as HappyIcon,
   RiEmotionUnhappyFill as SadIcon,
 } from "react-icons/ri";
-import { useGameState, useGameResult } from "../lib/useGame";
+import {
+  gameSelector,
+  resultsSelector,
+  useGameState,
+  useGameResult,
+  configSelector,
+} from "../game/states";
 import { Button } from "../ui/form";
 import styled from "styled-components";
 
-export default function EndGame({ game, reset }) {
+export default function EndGame() {
   const autofocus = useRef();
-  const [gameState] = useGameState(game);
-  const gameResult = useGameResult(game);
+  const [game, resetGame] = useRecoilState(gameSelector);
+  const { username, level } = useRecoilValue(configSelector);
+  const addResult = useSetRecoilState(resultsSelector);
+  const gameState = useGameState();
+  const prevGameState = useRef();
+  const gameResult = useGameResult();
+
+  // When game ends, store the result
+  useEffect(() => {
+    if (prevGameState.current !== gameState) {
+      prevGameState.current = gameState;
+      if (gameState === "ENDED") {
+        addResult(buildResult(game, username, level));
+      }
+    }
+  }, [prevGameState, gameState, game, addResult, username, level]);
 
   useEffect(() => {
     if (autofocus.current) autofocus.current.focus();
   }, [autofocus]);
+
+  if (gameState !== "ENDED") return null;
 
   return (
     <EndGameWrapper>
@@ -30,7 +53,7 @@ export default function EndGame({ game, reset }) {
           <SadIcon className="red" /> You Lost!
         </EndGameResult>
       )}
-      <Button ref={autofocus} className="icon-text" onClick={reset}>
+      <Button ref={autofocus} className="icon-text" onClick={resetGame}>
         <ReloadIcon />
         Play
       </Button>
@@ -76,3 +99,13 @@ const EndGameResult = styled.div`
     font-size: 2em;
   }
 `;
+
+function buildResult(game, username, level) {
+  return {
+    endDateTime: game.endDateTime.toJSON(),
+    level: level,
+    gameTime: game.gameTime,
+    result: game.result(),
+    username: username,
+  };
+}

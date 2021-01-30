@@ -1,4 +1,3 @@
-import useConfig from "../lib/useConfig";
 import Header from "../components/Header";
 import {
   RiRefreshLine as ReloadIcon,
@@ -9,16 +8,17 @@ import {
   RiEmotionUnhappyFill as SadIcon,
   RiTimerFill as TimeIcon,
   RiCalendarEventFill as CalendarIcon,
-  RiCloseLine as ClearIcon,
 } from "react-icons/ri";
 import { msToMS } from "../lib/utils";
 import { View, Container } from "../ui/layout";
 import { Button } from "../ui/form";
 import { Table, THead, TBody, Tr, Td } from "../ui/table";
 import styled from "styled-components";
+import { resultsSelector } from "../game/states";
+import { useRecoilValue } from "recoil";
 
 export default function Results() {
-  const config = useConfig();
+  const results = [...useRecoilValue(resultsSelector)];
   return (
     <View>
       <Container>
@@ -40,7 +40,7 @@ export default function Results() {
           </Button>
         </div>
 
-        {!!config.results.length && (
+        {!!results.length && (
           <Table>
             <THead>
               <Tr>
@@ -66,7 +66,7 @@ export default function Results() {
               </Tr>
             </THead>
             <TBody>
-              {config.results
+              {results
                 .sort(sortResults)
                 .slice(0, 10)
                 .map((res, resIdx) => {

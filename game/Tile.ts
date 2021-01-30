@@ -105,9 +105,7 @@ export default class Tile {
 
   private dispatch(evName: EventName, payload: any) {
     const callbacks = Object.values(this.#subscriptions[evName]);
-    setTimeout(() => {
-      callbacks.forEach((callback) => callback(payload));
-    }, 0);
+    callbacks.forEach((callback) => callback(payload));
   }
 
   log() {

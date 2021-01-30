@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
+import { useRecoilValue } from "recoil";
+import styled from "styled-components";
 import {
   RiUser3Fill as UserIcon,
   RiFlag2Fill,
   RiTimerFill,
   RiFlashlightFill as LevelIcon,
 } from "react-icons/ri";
-import styled from "styled-components";
-import { useGameState, useFlagsCount } from "../lib/useGame";
-import useConfig from "../lib/useConfig";
+import { useGameState, useFlagsCount, configSelector } from "../game/states";
 import { msToMS } from "../lib/utils";
 import { Row } from "../ui/flex";
 
@@ -61,14 +61,14 @@ const TimeIcon = styled(RiTimerFill)`
 `;
 
 export default function StatusBar({ game }) {
-  const config = useConfig();
-  const [gameState] = useGameState(game);
-  const flagsCount = useFlagsCount(game);
+  const { username, level } = useRecoilValue(configSelector);
+  const gameState = useGameState();
+  const flagsCount = useFlagsCount();
 
   return (
     <StyledStatusBar justify="between">
       <Pill title="Username">
-        <UserIcon /> {config.username}
+        <UserIcon /> {username}
       </Pill>
       <Pill title="Flag count" ghost>
         <FlagIcon /> {flagsCount}
@@ -78,7 +78,7 @@ export default function StatusBar({ game }) {
         run={gameState === "PLAYING"}
       />
       <Pill title="Level">
-        <LevelIcon /> {config.level}
+        <LevelIcon /> {level}
       </Pill>
     </StyledStatusBar>
   );

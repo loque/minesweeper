@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "react";
-import { useSetRecoilState } from "recoil";
-import { scanState, scanTargetsSelector } from "../game/states";
-import useGame, { useGameState } from "../lib/useGame";
-import useConfig from "../lib/useConfig";
+import { useSetRecoilState, useRecoilState } from "recoil";
+import { scanState, scanTargetsSelector, gameSelector } from "../game/states";
 
 import Header from "../components/Header";
 import StatusBar from "../components/StatusBar";
@@ -14,38 +12,16 @@ import { View, Container } from "../ui/layout";
 export const tileMargin = 1.5;
 
 export default function Game() {
-  const config = useConfig();
   const boardRef = useRef();
-  const [game, reset] = useGame(config.level);
-  const [gameState, setGameState] = useGameState(game);
-  const prevGameState = useRef();
+  const [game, resetGame] = useRecoilState(gameSelector);
 
-  // If game changes (on reset) the subscription from `useGameState` is not
-  // called so we need to manually check if the state has changed.
-  useEffect(() => {
-    setGameState((currGameState) => {
-      if (currGameState !== game.state()) {
-        return game.state();
-      }
-      return currGameState;
-    });
-  }, [game, setGameState]);
-
-  // When game ends, store the result
-  useEffect(() => {
-    if (prevGameState.current !== gameState) {
-      prevGameState.current = gameState;
-      if (gameState === "ENDED") {
-        config.addResult(buildResult(game, config));
-      }
-    }
-  }, [prevGameState, game, config, gameState]);
+  if (!game) resetGame();
 
   const updateScanState = useSetRecoilState(scanState);
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
   useEffect(() => {
-    if (["IDLE", "ENDED"].includes(gameState)) return;
+    if (!game || ["IDLE", "ENDED"].includes(game.state())) return;
 
     function startScan(ev) {
       ev.preventDefault();
@@ -103,26 +79,17 @@ export default function Game() {
       window.removeEventListener("mousedown", startScan);
       window.removeEventListener("mouseup", endScan);
     };
-  }, [gameState, game, boardRef, updateScanState, setScannedTargets]);
+  }, [game, boardRef, updateScanState, setScannedTargets]);
 
+  if (!game) return null;
   return (
     <View>
       <Container>
         <Header setupBtn />
         <StatusBar key={"statusbar:" + game.key} game={game} />
         <Board ref={boardRef} game={game} />
-        {gameState === "ENDED" && <EndGame game={game} reset={reset} />}
+        <EndGame key={"endgame:" + game.key} />
       </Container>
     </View>
   );
-}
-
-function buildResult(game, config) {
-  return {
-    endDateTime: game.endDateTime.toJSON(),
-    level: config.level,
-    gameTime: game.gameTime,
-    result: game.result(),
-    username: config.username,
-  };
 }
