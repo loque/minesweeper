@@ -38,8 +38,8 @@ export default function Game() {
       }
     }
 
-    function endScan(e) {
-      e.preventDefault();
+    function endScan(ev) {
+      ev.preventDefault();
       setScannedTargets([]);
       updateScanState(0);
     }
