@@ -50,14 +50,9 @@ export default class Minesweeper extends EventEmitter {
   #minesPlaced: boolean = false;
 
   constructor(config: BoardConfig) {
-    super();
+    super(Object.keys(EventName));
     this.key = "game" + getId();
     this.#config = config;
-    this.subscriptions = {
-      [EventName.stateChange]: {},
-      [EventName.resultChange]: {},
-      [EventName.flagsCountChange]: {},
-    };
 
     this.createEmptyBoard();
     this.setAdjacent();

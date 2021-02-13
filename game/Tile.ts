@@ -25,14 +25,11 @@ export default class Tile extends EventEmitter {
   isCauseOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
-    super();
+    super(Object.keys(EventName));
     this.#key = gameKey + ":tile" + getId();
     this.#absIdx = absIdx;
     this.#rowIdx = rowIdx;
     this.#colIdx = colIdx;
-    this.subscriptions = {
-      [EventName.stateChange]: {},
-    };
   }
 
   get key() {

@@ -5,19 +5,30 @@ interface EventCallback {
 }
 
 export default abstract class EventEmitter {
+  protected evNames: string[];
   protected subscriptions: {
     [key: string]: {
       [id: string]: EventCallback;
     };
   };
 
-  on(evName: string, callback: EventCallback): () => void {
+  constructor(evNames: string[]) {
+    this.evNames = evNames;
+    this.subscriptions = {};
+    this.evNames.forEach((evName) => {
+      this.subscriptions[evName] = {};
+    });
+  }
+
+  on(evName: string, callback: EventCallback): boolean | (() => void) {
+    if (this.evNames.includes(evName) === false) return false;
     const subId = getId();
     this.subscriptions[evName][subId] = callback;
     return () => delete this.subscriptions[evName][subId];
   }
 
-  once(evName: string, callback: EventCallback): void {
+  once(evName: string, callback: EventCallback): boolean | void {
+    if (this.evNames.includes(evName) === false) return false;
     const subId = getId();
     callback.remove = () => delete this.subscriptions[evName][subId];
     this.subscriptions[evName][subId] = callback;

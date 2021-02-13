@@ -12,8 +12,6 @@ export const levelSelector = selector({
   get: ({ get }) => get(levelAtom),
   set: ({ set }, level) => {
     localStorage.setItem("level", level);
-    const levelConfig = getLevelConfig(level);
-    set(gameAtom, new Minesweeper(levelConfig));
     set(levelAtom, level);
   },
 });
@@ -67,6 +65,7 @@ function getLevelConfig(level) {
 export const gameAtom = atom({
   key: "gameAtom",
   default: null,
+  dangerouslyAllowMutability: true,
 });
 
 export const gameSelector = selector({
@@ -77,7 +76,21 @@ export const gameSelector = selector({
     const levelConfig = getLevelConfig(level);
     set(gameAtom, new Minesweeper(levelConfig));
   },
+  dangerouslyAllowMutability: true,
 });
+
+/*
+  TODO: how can I create a new Minesweeper and have a loading state until it's
+  state changes to READY?
+
+  When clicking 'Play' in pages/index.js or components/EndGame.js, we should:
+    1. show a loading state **in the button** 
+    2. trigger the creation of a new Minesweeper and subscribe to state changes
+    3. when Minesweeper is READY, **then** transition to pages/game.js
+  
+  This behaviour should also be used when going directly to pages/game.js
+  without clickin any 'Play' button.
+*/
 
 export function useGameState() {
   const game = useRecoilValue(gameSelector);
