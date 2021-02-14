@@ -57,7 +57,7 @@ function Level() {
       </SectionTitle>
       <Select value={level} onChange={setLevel} label={(val) => `Level ${val}`}>
         {levels.map((_, levelIdx) => {
-          const level = levelIdx + 1;
+          const level = String(levelIdx + 1);
           return (
             <Option key={levelIdx} value={level}>
               Level {level}
