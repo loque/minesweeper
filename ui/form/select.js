@@ -6,6 +6,7 @@ import {
   ListboxList,
   ListboxOption,
 } from "@reach/listbox";
+import "@reach/listbox/styles.css";
 import { getCollisions } from "@reach/popover";
 import { RiArrowDownSLine as ArrowDownIcon } from "react-icons/ri";
 import common from "./common";
