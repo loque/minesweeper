@@ -11,17 +11,13 @@ import { View, Container } from "../ui/layout";
 
 export const tileMargin = 1.5;
 
-export default function Game() {
+function Game({ game }) {
   const boardRef = useRef();
-  const [game, resetGame] = useRecoilState(gameSelector);
-
-  if (!game) resetGame();
-
   const updateScanState = useSetRecoilState(scanState);
   const setScannedTargets = useSetRecoilState(scanTargetsSelector);
 
   useEffect(() => {
-    if (!game || ["IDLE", "ENDED"].includes(game.state())) return;
+    if (["IDLE", "ENDED"].includes(game.state())) return;
 
     function startScan(ev) {
       ev.preventDefault();
@@ -81,14 +77,28 @@ export default function Game() {
     };
   }, [game, boardRef, updateScanState, setScannedTargets]);
 
-  if (!game) return null;
+  return (
+    <>
+      <StatusBar key={"statusbar:" + game.key} game={game} />
+      <Board ref={boardRef} game={game} />
+      <EndGame key={"endgame:" + game.key} />
+    </>
+  );
+}
+
+export default function GamePage() {
+  const [game, resetGame] = useRecoilState(gameSelector);
+
+  useEffect(() => {
+    if (!game) resetGame();
+  }, [game]);
+
   return (
     <View>
       <Container>
         <Header setupBtn />
-        <StatusBar key={"statusbar:" + game.key} game={game} />
-        <Board ref={boardRef} game={game} />
-        <EndGame key={"endgame:" + game.key} />
+        {!game && <div>Loading</div>}
+        {game && <Game game={game} />}
       </Container>
     </View>
   );
