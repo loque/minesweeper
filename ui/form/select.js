@@ -25,6 +25,10 @@ const StyledButton = styled(ListboxButton)`
     margin-left: 0.4em;
     display: flex;
     justify-content: center;
+
+    &[data-reach-listbox-arrow] {
+      font-size: 1em;
+    }
   }
 `;
 
