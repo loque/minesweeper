@@ -20,8 +20,8 @@ export default class Tile extends EventEmitter {
   #absIdx: number = 0;
   #rowIdx: number = 0;
   #colIdx: number = 0;
-  hasMine: boolean = false;
   #adjacent: Tile[] = [];
+  hasMine: boolean = false;
   isCauseOfDefeat: boolean = false;
 
   constructor(gameKey: string, absIdx: number, rowIdx: number, colIdx: number) {
