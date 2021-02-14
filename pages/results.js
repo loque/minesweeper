@@ -17,7 +17,7 @@ import styled from "styled-components";
 import { resultsSelector } from "../game/states";
 import { useRecoilValue } from "recoil";
 
-export default function Results() {
+export default function ResultsPage() {
   const results = [...useRecoilValue(resultsSelector)];
   return (
     <View>

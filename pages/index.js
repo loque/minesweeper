@@ -89,7 +89,7 @@ function CallToAction() {
   );
 }
 
-export default function Home() {
+export default function HomePage() {
   return (
     <View>
       <Container>
