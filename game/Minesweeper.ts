@@ -51,7 +51,7 @@ export default class Minesweeper extends EventEmitter {
 
   constructor(config: BoardConfig) {
     super(Object.keys(EventName));
-    this.key = "game" + getId();
+    this.#key = "game" + getId();
     this.#config = config;
 
     this.createEmptyBoard();
@@ -61,10 +61,6 @@ export default class Minesweeper extends EventEmitter {
 
   get key() {
     return this.#key;
-  }
-
-  set key(newKey) {
-    this.#key = newKey;
   }
 
   get board(): BoardMatrix {
