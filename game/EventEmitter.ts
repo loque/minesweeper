@@ -1,7 +1,8 @@
+type CleanFunction = () => void;
+
 interface EventCallback {
   <T>(payload: T);
-  oneShot?: boolean;
-  remove?: () => void;
+  remove?: CleanFunction;
 }
 
 export default abstract class EventEmitter {
@@ -20,21 +21,34 @@ export default abstract class EventEmitter {
     });
   }
 
-  on(evName: string, callback: EventCallback): boolean | (() => void) {
-    if (this.evNames.includes(evName) === false) return false;
+  on(evName: string, callback: EventCallback): CleanFunction {
+    this.validateEventName(evName);
+    return this.registerSubscription(evName, callback);
+  }
+
+  once(evName: string, callback: EventCallback): CleanFunction {
+    this.validateEventName(evName);
+    const cleanFunction = this.registerSubscription(evName, callback);
+    callback.remove = cleanFunction;
+    return cleanFunction;
+  }
+
+  private validateEventName(evName: string): void {
+    if (this.evNames.includes(evName) === false)
+      throw new Error(
+        `event name ${evName} does not exist in EventEmitter.evNames (${this.evNames.join(
+          '","'
+        )})`
+      );
+  }
+
+  private registerSubscription(evName, callback): CleanFunction {
     const subId = getId();
     this.subscriptions[evName][subId] = callback;
     return () => delete this.subscriptions[evName][subId];
   }
 
-  once(evName: string, callback: EventCallback): boolean | void {
-    if (this.evNames.includes(evName) === false) return false;
-    const subId = getId();
-    callback.remove = () => delete this.subscriptions[evName][subId];
-    this.subscriptions[evName][subId] = callback;
-  }
-
-  protected emit(evName: string, payload: any) {
+  protected emit(evName: string, payload: any): void {
     if (this.subscriptions.hasOwnProperty(evName) === false) return;
     const callbacks = Object.values(this.subscriptions[evName]);
     callbacks.forEach((callback) => {
